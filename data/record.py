@@ -1,51 +1,38 @@
 import numpy as np
-from structure import sparseMatrix,new_sparseMatrix
 from tool.config import Config,LineConfig
 from tool.qmath import normalize
-from evaluation.dataSplit import DataSplit
+from tool.dataSplit import DataSplit
 import os.path
 from re import split
 from collections import defaultdict
 class RatingDAO(object):
     'data access control'
-    def __init__(self,config,trainingSet = list(), testSet = list()):
+    def __init__(self,config,trainingSet,testSet):
         self.config = config
-        self.ratingConfig = LineConfig(config['ratings.setup'])
-        self.user = {} #used to store the order of users in the training set
-        self.item = {} #used to store the order of items in the training set
-        self.id2user = {}
-        self.id2item = {}
-        self.all_Item = {}
-        self.all_User = {}
-        self.userMeans = {} #used to store the mean values of users's ratings
-        self.itemMeans = {} #used to store the mean values of items's ratings
-        self.globalMean = 0
-        self.timestamp = {}
-        self.trainSet_u = defaultdict(dict)
-        self.trainSet_i = defaultdict(dict)
-        self.testSet_u = defaultdict(dict) # used to store the test set by hierarchy user:[item,rating]
-        self.testSet_i = defaultdict(dict) # used to store the test set by hierarchy item:[user,rating]
-        self.rScale = []
+        self.recordConfig = LineConfig(config['record.setup'])
+        self.
+        self.users = {} #store the id of users
+        self.artists = {} #store the id of artists
+        self.albums = {} #store the id of albums
+        self.tracks = {} #store the id of tracks
+        self.artistsListened = defaultdict(dict) #key:user id, value:{artist id1:count, artist id2:count, ...}
+        self.albumsListened = defaultdict(dict) #key:user id, value:{album id1:count, album id2:count, ...}
+        self.tracksListened = defaultdict(dict) #key:user id, value:{track id1:count, track id2:count, ...}
+        self.artist2Albums = defaultdict(dict) #key:artist id, value:{album id1:1, album id2:1 ...}
+        self.albums2Tracks = defaultdict(dict) #
+        self.artist2Tracks = defaultdict(dict) #
+        self.userRecords = defaultdict(list) #user data in training set. form: {user:{record1,record2}}
+        self.testSet = defaultdict(dict) #user data in test set. form: {user:{record1,record2}}
 
-        self.trainingData = trainingSet
-        self.testData = testSet
-        self.__generateSet()
-
-        self.__computeItemMean()
-        self.__computeUserMean()
-        self.__globalAverage()
+        self.preprocess(trainingSet,testSet)
 
 
 
-    def __generateSet(self):
-        triple = []
-        scale = set()
-        # find the maximum rating and minimum value
-        for i, entry in enumerate(self.trainingData):
-            userName, itemName, rating = entry
-            scale.add(float(rating))
-        self.rScale = list(scale)
-        self.rScale.sort()
+    def preprocess(self,trainingSet, testSet):
+
+
+
+
 
         for i,entry in enumerate(self.trainingData):
             userName,itemName,rating = entry
@@ -81,44 +68,6 @@ class RatingDAO(object):
 
 
 
-    def __globalAverage(self):
-        total = sum(self.userMeans.values())
-        if total==0:
-            self.globalMean = 0
-        else:
-            self.globalMean = total/len(self.userMeans)
-
-    def __computeUserMean(self):
-        for u in self.user:
-            # n = self.row(u) > 0
-            # mean = 0
-            #
-            # if not self.containsUser(u):  # no data about current user in training set
-            #     pass
-            # else:
-            #     sum = float(self.row(u)[0].sum())
-            #     try:
-            #         mean =  sum/ n[0].sum()
-            #     except ZeroDivisionError:
-            #         mean = 0
-            self.userMeans[u] = sum(self.trainSet_u[u].values())/float(len(self.trainSet_u[u]))
-
-    def __computeItemMean(self):
-        for c in self.item:
-            self.itemMeans[c] = sum(self.trainSet_i[c].values()) / float(len(self.trainSet_i[c]))
-
-    def getUserId(self,u):
-        if self.user.has_key(u):
-            return self.user[u]
-        else:
-            return -1
-
-    def getItemId(self,i):
-        if self.item.has_key(i):
-            return self.item[i]
-        else:
-            return -1
-
     def trainingSize(self):
         return (len(self.user),len(self.item),len(self.trainingData))
 
@@ -133,31 +82,6 @@ class RatingDAO(object):
             return False
 
 
-    def containsUser(self,u):
-        'whether user is in training set'
-        if self.user.has_key(u):
-            return True
-        else:
-            return False
-
-    def containsItem(self,i):
-        'whether item is in training set'
-        if self.item.has_key(i):
-            return True
-        else:
-            return False
-
-    def userRated(self,u):
-        return self.trainSet_u[u].keys(),self.trainSet_u[u].values()
-
-    def itemRated(self,i):
-        return self.trainSet_i[i].keys(),self.trainSet_i[i].values()
-
-    # def row(self,u):
-    #     return self.trainingMatrix.row(self.getUserId(u))
-    #
-    # def col(self,c):
-    #     return self.trainingMatrix.col(self.getItemId(c))
 
     def sRow(self,u):
         return self.trainSet_u[u]
