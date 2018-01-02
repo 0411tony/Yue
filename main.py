@@ -22,7 +22,7 @@ if __name__ == '__main__':
 
 
     print 'Baselines:'
-    print 'b1 MostPop   b2. Rand'
+    print 'b1. MostPop   b2. Rand'
     print '='*80
     algor = -1
     conf = -1
