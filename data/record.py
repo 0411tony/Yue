@@ -29,11 +29,6 @@ class RatingDAO(object):
 
 
     def preprocess(self,trainingSet, testSet):
-
-
-
-
-
         for i,entry in enumerate(self.trainingData):
             userName,itemName,rating = entry
             # makes the rating within the range [0, 1].
