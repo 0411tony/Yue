@@ -10,11 +10,14 @@ class RatingDAO(object):
     def __init__(self,config,trainingSet,testSet):
         self.config = config
         self.recordConfig = LineConfig(config['record.setup'])
-        self.
         self.users = {} #store the id of users
+        self.id2users = {}
         self.artists = {} #store the id of artists
+        self.id2artists={}
         self.albums = {} #store the id of albums
+        self.id2albums = {}
         self.tracks = {} #store the id of tracks
+        self.id2tracks = {}
         self.artistsListened = defaultdict(dict) #key:user id, value:{artist id1:count, artist id2:count, ...}
         self.albumsListened = defaultdict(dict) #key:user id, value:{album id1:count, album id2:count, ...}
         self.tracksListened = defaultdict(dict) #key:user id, value:{track id1:count, track id2:count, ...}
@@ -29,15 +32,12 @@ class RatingDAO(object):
 
 
     def preprocess(self,trainingSet, testSet):
-        for i,entry in enumerate(self.trainingData):
-            userName,itemName,rating = entry
-            # makes the rating within the range [0, 1].
-            rating = normalize(float(rating), self.rScale[-1], self.rScale[0])
-            self.trainingData[i][2] = rating
-            # order the user
-            if not self.user.has_key(userName):
-                self.user[userName] = len(self.user)
-                self.id2user[self.user[userName]] = userName
+        for i, entry in enumerate(self.trainingData):
+            if entry.has_key('user'):
+                userName = entry['user']
+                if not self.user.has_key(userName):
+                    self.user[userName] = len(self.user)
+                    self.id2user[self.user[userName]] = userName
             # order the item
             if not self.item.has_key(itemName):
                 self.item[itemName] = len(self.item)
