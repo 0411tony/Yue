@@ -5,92 +5,85 @@ from tool.dataSplit import DataSplit
 import os.path
 from re import split
 from collections import defaultdict
-class RatingDAO(object):
+class Record(object):
     'data access control'
     def __init__(self,config,trainingSet,testSet):
         self.config = config
         self.recordConfig = LineConfig(config['record.setup'])
-        self.users = {} #store the id of users
-        self.id2users = {}
-        self.artists = {} #store the id of artists
-        self.id2artists={}
-        self.albums = {} #store the id of albums
-        self.id2albums = {}
-        self.tracks = {} #store the id of tracks
-        self.id2tracks = {}
-        self.artistsListened = defaultdict(dict) #key:user id, value:{artist id1:count, artist id2:count, ...}
-        self.albumsListened = defaultdict(dict) #key:user id, value:{album id1:count, album id2:count, ...}
-        self.tracksListened = defaultdict(dict) #key:user id, value:{track id1:count, track id2:count, ...}
-        self.artist2Albums = defaultdict(dict) #key:artist id, value:{album id1:1, album id2:1 ...}
-        self.albums2Tracks = defaultdict(dict) #
-        self.artist2Tracks = defaultdict(dict) #
-        self.userRecords = defaultdict(list) #user data in training set. form: {user:{record1,record2}}
-        self.testSet = defaultdict(dict) #user data in test set. form: {user:{record1,record2}}
+        self.evaluationConfig = LineConfig(config['evaluation.setting'])
+        self.id = defaultdict(dict)
+        self.name2id = defaultdict(dict)
+        self.artistListened = defaultdict(dict) #key:user id, value:{artist id1:count, artist id2:count, ...}
+        self.albumListened = defaultdict(dict) #key:user id, value:{album id1:count, album id2:count, ...}
+        self.trackListened = defaultdict(dict) #key:user id, value:{track id1:count, track id2:count, ...}
+        self.artist2Album = defaultdict(dict) #key:artist id, value:{album id1:1, album id2:1 ...}
+        self.album2Track = defaultdict(dict) #
+        self.artist2Track = defaultdict(dict) #
+        self.userRecord = defaultdict(dict) #user data in training set. form: {user:{record1,record2}}
+        self.testSet = defaultdict(dict) #user data in test set. form: {user:{recommenedObject1:1,recommendedObject:1}}
 
         self.preprocess(trainingSet,testSet)
 
 
+    def preprocess(self,trainingSet,testSet):
+        for entry in trainingSet:
+            for key in entry:
+                if key!='time':
+                    if not self.id[key].has_key(entry[key]):
+                        self.id[key][entry[key]] = len(self.id[key])
+                        self.name2id[key][len(self.name2id[key])] = entry[key]
 
-    def preprocess(self,trainingSet, testSet):
-        for i, entry in enumerate(self.trainingData):
-            if entry.has_key('user'):
-                userName = entry['user']
-                if not self.user.has_key(userName):
-                    self.user[userName] = len(self.user)
-                    self.id2user[self.user[userName]] = userName
-            # order the item
-            if not self.item.has_key(itemName):
-                self.item[itemName] = len(self.item)
-                self.id2item[self.item[itemName]] = itemName
-                # userList.append
-            self.trainSet_u[userName][itemName] = rating
-            self.trainSet_i[itemName][userName] = rating
-
-        self.all_User.update(self.user)
-        self.all_Item.update(self.item)
-        for entry in self.testData:
-            userName, itemName, rating = entry
-            # order the user
-            if not self.user.has_key(userName):
-                self.all_User[userName] = len(self.all_User)
-            # order the item
-            if not self.item.has_key(itemName):
-                self.all_Item[itemName] = len(self.all_Item)
-
-            self.testSet_u[userName][itemName] = rating
-            self.testSet_i[itemName][userName] = rating
+                if key=='user':
+                    self.userRecord[entry['user']].append(entry)
+                    if entry.has_key('artist'):
+                        if not self.artistListened[entry[key]].has_key(entry['artist']):
+                            self.artistListened[entry[key]][entry['artist']] = 0
+                        else:
+                            self.artistListened[entry[key]][entry['artist']] += 1
+                    if  entry.has_key('album'):
+                        if not self.albumListened[entry[key]].has_key(entry['album']):
+                            self.albumListened[entry[key]][entry['album']] = 0
+                        else:
+                            self.albumListened[entry[key]][entry['album']] += 1
+                    if entry.has_key('track'):
+                        if not self.trackListened[entry[key]].has_key(entry['track']):
+                            self.trackListened[entry[key]][entry['track']] = 0
+                        else:
+                            self.trackListened[entry[key]][entry['track']] += 1
+                if key == 'artist' and entry.has_key('album'):
+                        self.artist2Track[entry[key]][entry['artist']] = 1
+                if key == 'album' and entry.has_key('track'):
+                        self.album2Track[entry[key]][entry['artist']] = 1
+                if key == 'artist' and entry.has_key('track'):
+                    self.artist2Track[entry[key]][entry['artist']] = 1
 
 
-
-
-    def trainingSize(self):
-        return (len(self.user),len(self.item),len(self.trainingData))
-
-    def testSize(self):
-        return (len(self.testSet_u),len(self.testSet_i),len(self.testData))
-
-    def contains(self,u,i):
-        'whether user u rated item i'
-        if self.user.has_key(u) and self.trainSet_u[u].has_key(i):
-            return True
-        else:
-            return False
+        recommendedType = self.evaluationConfig['target']
+        for entry in testSet:
+            for key in entry:
+                if key != 'time':
+                    if not self.id[key].has_key(entry[key]):
+                        self.id[key][entry[key]] = len(self.id[key])
+                        self.name2id[key][len(self.name2id[key])] = entry[key]
+                if key=='user':
+                    if entry.has_key(recommendedType):
+                        testSet[entry['user']][entry[recommendedType]]=1
 
 
 
-    def sRow(self,u):
-        return self.trainSet_u[u]
 
-    def sCol(self,c):
-        return self.trainSet_i[c]
+    def printTrainingSize(self):
+        if self.id.has_key('user'):
+            print 'user count:',len(self.id['user'])
+        if self.id.has_key('artist'):
+            print 'artist count:',len(self.id['artist'])
+        if self.id.has_key('album'):
+            print 'album count:',len(self.id['album'])
+        if self.id.has_key('track'):
+            print 'track count:', len(self.id['track'])
+        print 'Training set size:',len(self.userRecord)
 
-    def rating(self,u,c):
-        if self.contains(u,c):
-            return self.trainSet_u[u][c]
-        return -1
 
-    def ratingScale(self):
-        return (self.rScale[0],self.rScale[1])
 
-    def elemCount(self):
-        return len(self.trainingData)
+
+
