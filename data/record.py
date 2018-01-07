@@ -58,7 +58,7 @@ class Record(object):
                     self.artist2Track[entry[key]][entry['artist']] = 1
 
 
-        recommendedType = self.evalConfig['-target']
+        recType = self.evalConfig['-target']
         for entry in testSet:
             for key in entry:
                 if key != 'time':
@@ -66,10 +66,8 @@ class Record(object):
                         self.id[key][entry[key]] = len(self.id[key])
                         self.name2id[key][len(self.name2id[key])] = entry[key]
                 if key=='user':
-                    if entry.has_key(recommendedType):
-                        testSet[entry['user']][entry[recommendedType]]=1
-
-
+                    if entry.has_key(recType):
+                        testSet[entry['user']][entry[recType]]=1
 
 
     def printTrainingSize(self):

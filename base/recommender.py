@@ -14,23 +14,16 @@ class Recommender(object):
         self.dao = Record(self.config, trainingSet, testSet)
         self.foldInfo = fold
         self.evalConfig = LineConfig(self.config['evaluation.setup'])
-        self.recommendedType = self.evalConfig['-target']
+        self.recType = self.evalConfig['-target']
         if LineConfig(self.config['evaluation.setup']).contains('-cold'):
             #evaluation on cold-start users
             threshold = int(LineConfig(self.config['evaluation.setup'])['-cold'])
             removedUser = {}
-            for user in self.dao.testSet_u:
-                if self.dao.trainSet_u.has_key(user) and len(self.dao.trainSet_u[user])>threshold:
+            for user in self.dao.testSet:
+                if self.dao.userRecord.has_key(user) and len(self.dao.userRecord[user])>threshold:
                     removedUser[user]=1
-
             for user in removedUser:
-                del self.dao.testSet_u[user]
-
-            testData = []
-            for item in self.dao.testData:
-                if not removedUser.has_key(item[0]):
-                    testData.append(item)
-            self.dao.testData = testData
+                del self.dao.testSet[user]
 
 
     def readConfiguration(self):
@@ -62,8 +55,8 @@ class Recommender(object):
     def loadModel(self):
         pass
 
-    def predict(self,u,i):
-        pass
+    def predict(self,user):
+        return []
 
 
 
@@ -89,11 +82,7 @@ class Recommender(object):
 
             for id, score in enumerate(predictedItems):
 
-                itemSet[self.dao.id[self.recommendedType]] = score
-
-            ratedList, ratingList = self.dao.userRated(user)
-            for item in ratedList:
-                del itemSet[item]
+                itemSet[self.dao.id[self.recType]] = score
 
             rawRes[user] = itemSet
             Nrecommendations = []
