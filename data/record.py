@@ -10,7 +10,7 @@ class Record(object):
     def __init__(self,config,trainingSet,testSet):
         self.config = config
         self.recordConfig = LineConfig(config['record.setup'])
-        self.evaluationConfig = LineConfig(config['evaluation.setup'])
+        self.evalConfig = LineConfig(config['evaluation.setup'])
         self.id = defaultdict(dict)
         self.name2id = defaultdict(dict)
         self.artistListened = defaultdict(dict) #key:user id, value:{artist id1:count, artist id2:count, ...}
@@ -58,7 +58,7 @@ class Record(object):
                     self.artist2Track[entry[key]][entry['artist']] = 1
 
 
-        recommendedType = self.evaluationConfig['target']
+        recommendedType = self.evalConfig['-target']
         for entry in testSet:
             for key in entry:
                 if key != 'time':

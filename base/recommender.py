@@ -1,4 +1,4 @@
-from data import record
+from data.record import Record
 from tool.file import FileIO
 from tool.qmath import denormalize
 from tool.config import Config,LineConfig
@@ -8,15 +8,13 @@ from evaluation.measure import Measure
 class Recommender(object):
     def __init__(self,conf,trainingSet=None,testSet=None,fold='[1]'):
         self.config = conf
-        self.dao = None
         self.isSaveModel = False
-        self.ranking = None
         self.isLoadModel = False
-        self.output = None
         self.isOutput = True
-        self.dao = RatingDAO(self.config, trainingSet, testSet)
+        self.dao = Record(self.config, trainingSet, testSet)
         self.foldInfo = fold
-        self.measure = []
+        self.evalConfig = LineConfig(self.config['evaluation.setup'])
+        self.recommendedType = self.evalConfig['-target']
         if LineConfig(self.config['evaluation.setup']).contains('-cold'):
             #evaluation on cold-start users
             threshold = int(LineConfig(self.config['evaluation.setup'])['-cold'])
@@ -44,12 +42,11 @@ class Recommender(object):
     def printAlgorConfig(self):
         "show algorithm's configuration"
         print 'Algorithm:',self.config['recommender']
-        print 'Ratings dataset:',abspath(self.config['ratings'])
+        print 'Training set:',abspath(self.config['record'])
         if LineConfig(self.config['evaluation.setup']).contains('-testSet'):
             print 'Test set:',abspath(LineConfig(self.config['evaluation.setup']).getOption('-testSet'))
         #print 'Count of the users in training set: ',len()
-        print 'Training set size: (user count: %d, item count %d, record count: %d)' %(self.dao.trainingSize())
-        print 'Test set size: (user count: %d, item count %d, record count: %d)' %(self.dao.testSize())
+        self.dao.printTrainingSize()
         print '='*80
 
     def initModel(self):
@@ -68,91 +65,31 @@ class Recommender(object):
     def predict(self,u,i):
         pass
 
-    def predictForRanking(self,u):
-        pass
 
-
-    def checkRatingBoundary(self,prediction):
-        if prediction > self.dao.rScale[-1]:
-            return self.dao.rScale[-1]
-        elif prediction < self.dao.rScale[0]:
-            return self.dao.rScale[0]
-        else:
-            return round(prediction,3)
-
-    def evalRatings(self):
-        res = [] #used to contain the text of the result
-        res.append('userId  itemId  original  prediction\n')
-        #predict
-        for ind,entry in enumerate(self.dao.testData):
-            user,item,rating = entry
-
-            #predict
-            prediction = self.predict(user,item)
-            #denormalize
-            prediction = denormalize(prediction,self.dao.rScale[-1],self.dao.rScale[0])
-            #####################################
-            pred = self.checkRatingBoundary(prediction)
-            # add prediction in order to measure
-            self.dao.testData[ind].append(pred)
-            res.append(user+' '+item+' '+str(rating)+' '+str(pred)+'\n')
-        currentTime = strftime("%Y-%m-%d %H-%M-%S",localtime(time()))
-        #output prediction result
-        if self.isOutput:
-            outDir = self.output['-dir']
-            fileName = self.config['recommender']+'@'+currentTime+'-rating-predictions'+self.foldInfo+'.txt'
-            FileIO.writeFile(outDir,fileName,res)
-            print 'The result has been output to ',abspath(outDir),'.'
-        #output evaluation result
-        outDir = self.output['-dir']
-        fileName = self.config['recommender'] + '@'+currentTime +'-measure'+ self.foldInfo + '.txt'
-        self.measure = Measure.ratingMeasure(self.dao.testData)
-        FileIO.writeFile(outDir, fileName, self.measure)
-        print 'The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure))
 
     def evalRanking(self):
         res = []  # used to contain the text of the result
         N = 0
         threshold = 0
-        bThres = False
-        bTopN = False
-        if self.ranking.contains('-topN'):
-            bTopN = True
-            N = int(self.ranking['-topN'])
-            if N > 100 or N < 0:
-                print 'N can not be larger than 100! It has been reassigned with 100'
-                N = 100
-            if N > len(self.dao.item):
-                N = len(self.dao.item)
-        elif self.ranking.contains('-threshold'):
-            threshold = float(self.ranking['-threshold'])
-            bThres = True
-        else:
-            print 'No correct evaluation metric is specified!'
-            exit(-1)
+
+        N = int(self.ranking['-topN'])
+        if N > 100 or N < 0:
+            print 'N can not be larger than 100! It has been reassigned with 10'
+            N = 10
 
         res.append('userId: recommendations in (itemId, ranking score) pairs, * means the item matches.\n')
         # predict
         recList = {}
-        userN = {}
-        userCount = len(self.dao.testSet_u)
+        userCount = len(self.dao.testSet)
         rawRes = {}
-        for i, user in enumerate(self.dao.testSet_u):
+        for i, user in enumerate(self.dao.testSet):
             itemSet = {}
             line = user + ':'
-            predictedItems = self.predictForRanking(user)
-            # predictedItems = denormalize(predictedItems, self.dao.rScale[-1], self.dao.rScale[0])
-            for id, rating in enumerate(predictedItems):
-                # if not self.dao.rating(user, self.dao.id2item[id]):
-                # prediction = self.checkRatingBoundary(prediction)
-                # pred = self.checkRatingBoundary(prediction)
-                #####################################
-                # add prediction in order to measure
-                # if bThres:
-                #     if rating > threshold:
-                #         itemSet[self.dao.id2item[id]]= rating
-                # else:
-                itemSet[self.dao.id2item[id]] = rating
+            predictedItems = self.predict(user)
+
+            for id, score in enumerate(predictedItems):
+
+                itemSet[self.dao.id[self.recommendedType]] = score
 
             ratedList, ratingList = self.dao.userRated(user)
             for item in ratedList:
@@ -198,16 +135,12 @@ class Recommender(object):
                     recommendations[ind + 1] = itemSet[item]
                     resNames[ind + 1] = item
             recList[user] = zip(resNames, recommendations)
-            # elif bThres:
-            #     itemSet = sorted(itemSet.iteritems(), key=lambda d: d[1], reverse=True)
-            #     recList[user] = itemSet[:]
-            #     userN[user] = len(itemSet)
 
             if i % 100 == 0:
                 print self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount)
             for item in recList[user]:
                 line += ' (' + item[0] + ',' + str(item[1]) + ')'
-                if self.dao.testSet_u[user].has_key(item[0]):
+                if self.dao.testSet[user].has_key(item[0]):
                     line += '*'
 
             line += '\n'
@@ -229,16 +162,8 @@ class Recommender(object):
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
         if self.ranking.contains('-topN'):
-            self.measure = Measure.rankingMeasure(self.dao.testSet_u, recList, rawRes,N)
-        # elif self.ranking.contains('-threshold'):
-        #     origin = self.dao.testSet_u.copy()
-        #     for user in origin:
-        #         temp = {}
-        #         for item in origin[user]:
-        #             if origin[user][item] >= threshold:
-        #                 temp[item] = threshold
-        #         origin[user] = temp
-        #     self.measure = Measure.rankingMeasure_threshold(origin, recList, userN)
+            self.measure = Measure.rankingMeasure(self.dao.testSet, recList, rawRes,N)
+
         FileIO.writeFile(outDir, fileName, self.measure)
         print 'The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure))
 
@@ -258,47 +183,10 @@ class Recommender(object):
 
         #preict the ratings or item ranking
         print 'Predicting %s...' %(self.foldInfo)
-        if self.ranking.isMainOn():
-            self.evalRanking()
-        else:
-            self.evalRatings()
-
+        self.evalRanking()
         #save model
         if self.isSaveModel:
             print 'Saving model %s...' %(self.foldInfo)
             self.saveModel()
 
         return self.measure
-
-
-    def performance(self):
-        #res = []  # used to contain the text of the result
-        #res.append('userId  itemId  original  prediction\n')
-        # predict
-        res = []
-        for ind, entry in enumerate(self.dao.testData):
-            user, item, rating = entry
-
-            # predict
-            prediction = self.predict(user, item)
-            # denormalize
-            prediction = denormalize(prediction, self.dao.rScale[-1], self.dao.rScale[0])
-            #####################################
-            pred = self.checkRatingBoundary(prediction)
-            # add prediction in order to measure
-            res.append([user,item,rating,pred])
-            #res.append(user + ' ' + item + ' ' + str(rating) + ' ' + str(pred) + '\n')
-        #currentTime = strftime("%Y-%m-%d %H-%M-%S", localtime(time()))
-        # output prediction result
-        # if self.isOutput:
-        #     outDir = self.output['-dir']
-        #     fileName = self.config['recommender'] + '@' + currentTime + '-rating-predictions' + self.foldInfo + '.txt'
-        #     FileIO.writeFile(outDir, fileName, res)
-        #     print 'The Result has been output to ', abspath(outDir), '.'
-        # output evaluation result
-        # outDir = self.output['-dir']
-        # fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
-        self.measure = Measure.ratingMeasure(res)
-
-        return self.measure
-        #FileIO.writeFile(outDir, fileName, self.measure)
