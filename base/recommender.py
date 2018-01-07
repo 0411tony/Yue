@@ -85,9 +85,9 @@ class Recommender(object):
             if i % 100 == 0:
                 print self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount)
             for item in recList[user]:
-                line += item
                 if self.dao.testSet[user].has_key(item[0]):
                     line += '*'
+                line += item + ','
 
             line += '\n'
             res.append(line)

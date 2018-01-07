@@ -1,4 +1,5 @@
 import os.path
+from os.path import abspath
 class Config(object):
     def __init__(self,fileName):
         self.config = {}
@@ -20,7 +21,7 @@ class Config(object):
         return self.config.has_key(key)
 
     def readConfiguration(self,fileName):
-        path = '../config/'+fileName
+        path = abspath(fileName)
         if not os.path.exists(path):
             print 'config file is not found!'
             raise IOError

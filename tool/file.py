@@ -20,14 +20,15 @@ class FileIO(object):
 
 
     @staticmethod
-    def loadDataSet(file, binarized = False, threshold = 3, delim='', **columns):
+    def loadDataSet(file, columns,binarized = False, threshold = 3, delim='' ):
+        print 'load dataset...'
         record = []
         colNames = columns.keys()
         if len(colNames) < 2:
             print 'The dataset needs more information or the record.setup setting has some problems...'
             exit(-1)
         index = [int(item) for item in columns.values()]
-        delimiter=' |,|\t'
+        delimiter=',| |\t'
         if delim != '':
             delimiter = delim
         with open(file) as f:
@@ -37,8 +38,8 @@ class FileIO(object):
                 try:
                     items = split(delimiter, line.strip())
                     event = {}
-                    for ind, column in zip(colNames,index):
-                        event[column[1:]] = items[ind]
+                    for column,ind in zip(colNames,index):
+                        event[column] = items[ind]
                         if binarized and event.has_key('play'):
                             if int(event['play']) >= threshold:
                                 event['play'] = 1

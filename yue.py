@@ -6,6 +6,7 @@ from tool.dataSplit import *
 from multiprocessing import Process,Manager
 from tool.file import FileIO
 from time import strftime,localtime,time
+from json import loads
 import mkl
 class Yue(object):
     def __init__(self,config):
@@ -13,7 +14,15 @@ class Yue(object):
         self.testData = []  # testData
         self.measure = []
         self.config =config
-        self.record = LineConfig(config['record.setup'])
+        setup = LineConfig(config['record.setup'])
+        columns = {}
+        labels = setup['-columns'].split(',')
+        delim = ''
+        if setup.contains('-delim'):
+            delim=setup['-delim']
+        for col in labels:
+            label = col.split(':')
+            columns[label[0]] = int(label[1])
         if self.config.contains('evaluation.setup'):
             self.evaluation = LineConfig(config['evaluation.setup'])
             binarized = False
@@ -24,18 +33,18 @@ class Yue(object):
             if self.evaluation.contains('-testSet'):
                 #specify testSet
 
-                self.trainingData = FileIO.loadDataSet(config['record'],binarized=binarized,threshold=bottom)
-                self.testData = FileIO.loadDataSet(self.evaluation['-testSet'],binarized=binarized,threshold=bottom)
+                self.trainingData = FileIO.loadDataSet(config['record'],columns=columns,binarized=binarized,threshold=bottom,delim=delim)
+                self.testData = FileIO.loadDataSet(self.evaluation['-testSet'],binarized=binarized,columns=columns,threshold=bottom,delim=delim)
 
             elif self.evaluation.contains('-ap'):
                 #auto partition
 
-                self.trainingData = FileIO.loadDataSet(config['record'],binarized=binarized,threshold=bottom)
+                self.trainingData = FileIO.loadDataSet(config['record'],columns=columns,binarized=binarized,threshold=bottom,delim=delim)
                 self.trainingData,self.testData = DataSplit.\
-                    dataSplit(self.trainingData,test_ratio=float(self.evaluation['-ap']),binarized=binarized)
+                    dataSplit(self.trainingData,test_ratio=float(self.evaluation['-ap']))
             elif self.evaluation.contains('-cv'):
                 #cross validation
-                self.trainingData = FileIO.loadDataSet(config['record'],binarized=binarized,threshold=bottom)
+                self.trainingData = FileIO.loadDataSet(config['record'],columns=columns,binarized=binarized,threshold=bottom,delim=delim)
                 #self.trainingData,self.testData = DataSplit.crossValidation(self.trainingData,int(self.evaluation['-cv']))
 
         else:
@@ -77,7 +86,7 @@ class Yue(object):
             if self.evaluation.contains('-b'):
                 binarized = True
 
-            for train,test in DataSplit.crossValidation(self.trainingData,k,binarized=binarized):
+            for train,test in DataSplit.crossValidation(self.trainingData,k):
                 fold = '['+str(i)+']'
                 # if self.config.contains('social'):
                 #     recommender = self.config['recommender'] + "(self.config,train,test,self.relation,fold)"

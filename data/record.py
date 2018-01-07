@@ -13,13 +13,13 @@ class Record(object):
         self.evalConfig = LineConfig(config['evaluation.setup'])
         self.id = defaultdict(dict)
         self.name2id = defaultdict(dict)
-        self.artistListened = defaultdict(dict) #key:user id, value:{artist id1:count, artist id2:count, ...}
-        self.albumListened = defaultdict(dict) #key:user id, value:{album id1:count, album id2:count, ...}
-        self.trackListened = defaultdict(dict) #key:user id, value:{track id1:count, track id2:count, ...}
+        self.artistListened = defaultdict(dict) #key:aritst id, value:{user id1:count, user id2:count, ...}
+        self.albumListened = defaultdict(dict) #key:album id, value:{user id1:count, user id2:count, ...}
+        self.trackListened = defaultdict(dict) #key:track id, value:{user id1:count, user id2:count, ...}
         self.artist2Album = defaultdict(dict) #key:artist id, value:{album id1:1, album id2:1 ...}
         self.album2Track = defaultdict(dict) #
         self.artist2Track = defaultdict(dict) #
-        self.userRecord = defaultdict(dict) #user data in training set. form: {user:{record1,record2}}
+        self.userRecord = defaultdict(list) #user data in training set. form: {user:[record1,record2]}
         self.testSet = defaultdict(dict) #user data in test set. form: {user:{recommenedObject1:1,recommendedObject:1}}
 
         self.preprocess(trainingSet,testSet)
@@ -36,24 +36,24 @@ class Record(object):
                 if key=='user':
                     self.userRecord[entry['user']].append(entry)
                     if entry.has_key('artist'):
-                        if not self.artistListened[entry[key]].has_key(entry['artist']):
-                            self.artistListened[entry[key]][entry['artist']] = 0
+                        if not self.artistListened[entry['artist']].has_key(entry[key]):
+                            self.artistListened[entry['artist']][entry[key]] = 0
                         else:
-                            self.artistListened[entry[key]][entry['artist']] += 1
+                            self.artistListened[entry['artist']][entry[key]] += 1
                     if  entry.has_key('album'):
-                        if not self.albumListened[entry[key]].has_key(entry['album']):
-                            self.albumListened[entry[key]][entry['album']] = 0
+                        if not self.albumListened[entry['album']].has_key(entry[key]):
+                            self.albumListened[entry['album']][entry[key]] = 0
                         else:
-                            self.albumListened[entry[key]][entry['album']] += 1
+                            self.albumListened[entry['album']][entry[key]] += 1
                     if entry.has_key('track'):
-                        if not self.trackListened[entry[key]].has_key(entry['track']):
-                            self.trackListened[entry[key]][entry['track']] = 0
+                        if not self.trackListened[entry['track']].has_key(entry[key]):
+                            self.trackListened[entry['track']][entry[key]] = 0
                         else:
-                            self.trackListened[entry[key]][entry['track']] += 1
+                            self.trackListened[entry['track']][entry[key]] += 1
                 if key == 'artist' and entry.has_key('album'):
-                        self.artist2Track[entry[key]][entry['artist']] = 1
+                        self.artist2Track[entry[key]][entry['album']] = 1
                 if key == 'album' and entry.has_key('track'):
-                        self.album2Track[entry[key]][entry['artist']] = 1
+                        self.album2Track[entry[key]][entry['track']] = 1
                 if key == 'artist' and entry.has_key('track'):
                     self.artist2Track[entry[key]][entry['artist']] = 1
 
@@ -67,7 +67,7 @@ class Record(object):
                         self.name2id[key][len(self.name2id[key])] = entry[key]
                 if key=='user':
                     if entry.has_key(recType):
-                        testSet[entry['user']][entry[recType]]=1
+                        self.testSet[entry['user']][entry[recType]]=1
 
 
     def printTrainingSize(self):

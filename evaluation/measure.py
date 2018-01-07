@@ -27,8 +27,8 @@ class Measure(object):
         measure.append('F1:' + str(F1) + '\n')
         MAP = Measure.MAP(origin,res,N)
         measure.append('MAP:' + str(MAP) + '\n')
-        AUC = Measure.AUC(origin,res,rawRes)
-        measure.append('AUC:' + str(AUC) + '\n')
+        #AUC = Measure.AUC(origin,res,rawRes)
+        #measure.append('AUC:' + str(AUC) + '\n')
         return measure
 
     @staticmethod
@@ -43,7 +43,7 @@ class Measure(object):
             hits = 0
             precision = 0
             for n, item in enumerate(res[user]):
-                if origin[user].has_key(item[0]):
+                if origin[user].has_key(item):
                     hits += 1
                     precision += hits / (n + 1.0)
             sum_prec += precision / (min(len(origin[user]), N) + 0.0)

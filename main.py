@@ -1,5 +1,5 @@
 import sys
-sys.path.append("..")
+#sys.path.append("..")
 import yue
 from tool.config import Config
 
@@ -31,10 +31,10 @@ if __name__ == '__main__':
     s = time.time()
 
     if order == 'b1':
-        conf = Config('../config/MostPop.conf')
+        conf = Config('./config/MostPop.conf')
 
     elif order == 'b2':
-        conf = Config('../config/rand.conf')
+        conf = Config('./config/rand.conf')
 
     else:
         print 'Error num!'
