@@ -80,55 +80,12 @@ class Recommender(object):
             line = user + ':'
             predictedItems = self.predict(user)
 
-            for id, score in enumerate(predictedItems):
-
-                itemSet[self.dao.id[self.recType]] = score
-
-            rawRes[user] = itemSet
-            Nrecommendations = []
-            for item in itemSet:
-                if len(Nrecommendations) < N:
-                    Nrecommendations.append((item, itemSet[item]))
-                else:
-                    break
-
-            Nrecommendations.sort(key=lambda d: d[1], reverse=True)
-            recommendations = [item[1] for item in Nrecommendations]
-            resNames = [item[0] for item in Nrecommendations]
-
-            # itemSet = sorted(itemSet.iteritems(), key=lambda d: d[1], reverse=True)
-            # if bTopN:
-            # find the K biggest scores
-            for item in itemSet:
-                ind = N
-                l = 0
-                r = N - 1
-
-                if recommendations[r] < itemSet[item]:
-                    while True:
-
-                        mid = (l + r) / 2
-                        if recommendations[mid] >= itemSet[item]:
-                            l = mid + 1
-                        elif recommendations[mid] < itemSet[item]:
-                            r = mid - 1
-                        else:
-                            ind = mid
-                            break
-                        if r < l:
-                            ind = r
-                            break
-                # ind = bisect(recommendations, itemSet[item])
-
-                if ind < N - 1:
-                    recommendations[ind + 1] = itemSet[item]
-                    resNames[ind + 1] = item
-            recList[user] = zip(resNames, recommendations)
+            recList[user] = predictedItems
 
             if i % 100 == 0:
                 print self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount)
             for item in recList[user]:
-                line += ' (' + item[0] + ',' + str(item[1]) + ')'
+                line += item
                 if self.dao.testSet[user].has_key(item[0]):
                     line += '*'
 

@@ -8,11 +8,9 @@ class Measure(object):
         hitCount = {}
         for user in origin:
             items = origin[user].keys()
-            predicted = [item[0] for item in res[user]]
+            predicted = [item for item in res[user]]
             hitCount[user] = len(set(items).intersection(set(predicted)))
         return hitCount
-
-
 
     @staticmethod
     def rankingMeasure(origin,res,rawRes,N):
@@ -33,12 +31,10 @@ class Measure(object):
         measure.append('AUC:' + str(AUC) + '\n')
         return measure
 
-
     @staticmethod
     def precision(hits,N):
         prec = sum([hits[user] for user in hits])
         return float(prec)/(len(hits)*N)
-
 
     @staticmethod
     def MAP(origin, res, N):
@@ -74,7 +70,6 @@ class Measure(object):
                 sum_AUC+=float(larger)/count
 
         return float(sum_AUC)/len(origin)
-
 
     @staticmethod
     def recall(hits,origin):
