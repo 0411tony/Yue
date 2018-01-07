@@ -10,7 +10,7 @@ class Record(object):
     def __init__(self,config,trainingSet,testSet):
         self.config = config
         self.recordConfig = LineConfig(config['record.setup'])
-        self.evaluationConfig = LineConfig(config['evaluation.setting'])
+        self.evaluationConfig = LineConfig(config['evaluation.setup'])
         self.id = defaultdict(dict)
         self.name2id = defaultdict(dict)
         self.artistListened = defaultdict(dict) #key:user id, value:{artist id1:count, artist id2:count, ...}

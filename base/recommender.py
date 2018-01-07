@@ -1,4 +1,4 @@
-from data.rating import RatingDAO
+from data import record
 from tool.file import FileIO
 from tool.qmath import denormalize
 from tool.config import Config,LineConfig
