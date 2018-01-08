@@ -21,12 +21,13 @@ class Record(object):
         self.artist2Track = defaultdict(dict) #
         self.userRecord = defaultdict(list) #user data in training set. form: {user:[record1,record2]}
         self.testSet = defaultdict(dict) #user data in test set. form: {user:{recommenedObject1:1,recommendedObject:1}}
-
+        self.recordCount = 0
         self.preprocess(trainingSet,testSet)
 
 
     def preprocess(self,trainingSet,testSet):
         for entry in trainingSet:
+            self.recordCount+=1
             for key in entry:
                 if key!='time':
                     if not self.name2id[key].has_key(entry[key]):
@@ -79,7 +80,7 @@ class Record(object):
             print 'album count:',len(self.name2id['album'])
         if self.name2id.has_key('track'):
             print 'track count:', len(self.name2id['track'])
-        print 'Training set size:',len(self.userRecord)
+        print 'Training set size:',self.recordCount
 
 
     def getId(self,obj,t):
