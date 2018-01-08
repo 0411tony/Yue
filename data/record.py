@@ -22,7 +22,24 @@ class Record(object):
         self.userRecord = defaultdict(list) #user data in training set. form: {user:[record1,record2]}
         self.testSet = defaultdict(dict) #user data in test set. form: {user:{recommenedObject1:1,recommendedObject:1}}
         self.recordCount = 0
+        if self.evalConfig.contains('-byTime'):
+            trainingSet,testSet = self.splitDataByTime(trainingSet)
         self.preprocess(trainingSet,testSet)
+
+    def splitDataByTime(self,dataset):
+        trainingSet = []
+        testSet = []
+        ratio = float(self.evalConfig['-byTime'])
+        records = defaultdict(list)
+        for event in dataset:
+            records[event['user']].append(event)
+        for user in records:
+            orderedList = sorted(records[user],key=lambda d:d['time'])
+            training = orderedList[0:int(len(orderedList)*(1-ratio))]
+            test = orderedList[int(len(orderedList)*(1-ratio)):]
+            trainingSet += training
+            testSet += test
+        return trainingSet,testSet
 
 
     def preprocess(self,trainingSet,testSet):

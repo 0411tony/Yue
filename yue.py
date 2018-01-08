@@ -42,6 +42,11 @@ class Yue(object):
                 self.trainingData = FileIO.loadDataSet(config['record'],columns=columns,binarized=binarized,threshold=bottom,delim=delim)
                 self.trainingData,self.testData = DataSplit.\
                     dataSplit(self.trainingData,test_ratio=float(self.evaluation['-ap']))
+
+            elif self.evaluation.contains('-byTime'):
+                self.trainingData = FileIO.loadDataSet(config['record'], columns=columns, binarized=binarized,threshold=bottom, delim=delim)
+                self.testData = []
+
             elif self.evaluation.contains('-cv'):
                 #cross validation
                 self.trainingData = FileIO.loadDataSet(config['record'],columns=columns,binarized=binarized,threshold=bottom,delim=delim)
