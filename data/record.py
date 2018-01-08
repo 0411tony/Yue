@@ -11,8 +11,8 @@ class Record(object):
         self.config = config
         self.recordConfig = LineConfig(config['record.setup'])
         self.evalConfig = LineConfig(config['evaluation.setup'])
-        self.id = defaultdict(dict)
         self.name2id = defaultdict(dict)
+        self.id2name = defaultdict(dict)
         self.artistListened = defaultdict(dict) #key:aritst id, value:{user id1:count, user id2:count, ...}
         self.albumListened = defaultdict(dict) #key:album id, value:{user id1:count, user id2:count, ...}
         self.trackListened = defaultdict(dict) #key:track id, value:{user id1:count, user id2:count, ...}
@@ -29,9 +29,9 @@ class Record(object):
         for entry in trainingSet:
             for key in entry:
                 if key!='time':
-                    if not self.id[key].has_key(entry[key]):
-                        self.id[key][entry[key]] = len(self.id[key])
-                        self.name2id[key][len(self.name2id[key])] = entry[key]
+                    if not self.name2id[key].has_key(entry[key]):
+                        self.name2id[key][entry[key]] = len(self.name2id[key])
+                        self.id2name[key][len(self.id2name[key])] = entry[key]
 
                 if key=='user':
                     self.userRecord[entry['user']].append(entry)
@@ -62,26 +62,35 @@ class Record(object):
         for entry in testSet:
             for key in entry:
                 if key != 'time':
-                    if not self.id[key].has_key(entry[key]):
-                        self.id[key][entry[key]] = len(self.id[key])
-                        self.name2id[key][len(self.name2id[key])] = entry[key]
+                    if not self.name2id[key].has_key(entry[key]):
+                        self.name2id[key][entry[key]] = len(self.name2id[key])
+                        self.id2name[key][len(self.id2name[key])] = entry[key]
                 if key=='user':
                     if entry.has_key(recType):
                         self.testSet[entry['user']][entry[recType]]=1
 
 
     def printTrainingSize(self):
-        if self.id.has_key('user'):
-            print 'user count:',len(self.id['user'])
-        if self.id.has_key('artist'):
-            print 'artist count:',len(self.id['artist'])
-        if self.id.has_key('album'):
-            print 'album count:',len(self.id['album'])
-        if self.id.has_key('track'):
-            print 'track count:', len(self.id['track'])
+        if self.name2id.has_key('user'):
+            print 'user count:',len(self.name2id['user'])
+        if self.name2id.has_key('artist'):
+            print 'artist count:',len(self.name2id['artist'])
+        if self.name2id.has_key('album'):
+            print 'album count:',len(self.name2id['album'])
+        if self.name2id.has_key('track'):
+            print 'track count:', len(self.name2id['track'])
         print 'Training set size:',len(self.userRecord)
 
 
+    def getId(self,obj,t):
+        if self.name2id[t].has_key(obj):
+            return self.name2id[t][obj]
+        else:
+            print 'No '+t+' '+obj+' exists!'
+            exit(-1)
+
+    def getSize(self,t):
+        return len(self.name2id[t])
 
 
 

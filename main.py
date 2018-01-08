@@ -1,5 +1,5 @@
 import sys
-#sys.path.append("..")
+sys.path.append("..")
 import yue
 from tool.config import Config
 
@@ -12,6 +12,7 @@ if __name__ == '__main__':
     print '   Yue: Library for Music Recommendation.   '
     print '='*80
     print 'CF-based Recommenders:'
+    print '1. BPR'
 
 
     print 'Content-based Recommenders:'
@@ -29,8 +30,10 @@ if __name__ == '__main__':
     order = raw_input('Please enter the num of the algorithm to run it:')
     import time
     s = time.time()
+    if order=='1':
+        conf = Config('./config/BPR.conf')
 
-    if order == 'b1':
+    elif order == 'b1':
         conf = Config('./config/MostPop.conf')
 
     elif order == 'b2':
