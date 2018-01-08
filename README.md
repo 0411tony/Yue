@@ -53,9 +53,9 @@
       -testSet path/to/test/file   (need to specify the test set manually)</br>
       -ap ratio   (ap means that the ratings are automatically partitioned into training set and test set, the number is the ratio of test set. e.g. -ap 0.2)</br>
       -cv k   (-cv means cross validation, k is the number of the fold. e.g. -cv 5)</br>
-      -byTime ratio  (sort the user record in order of the time. ratio decides the percentage of test set(recently played).</br>
+      <b>-byTime ratio </b> (sort the user record in order of the time. ratio decides the percentage of test set(recently played).</br>
       Secondary option:-b, -p, -cold</br>
-      -target track (This option decides which type of object will be recommended (artist, track, album). Only available for some general recommenders like MostPop) </br> 
+      <b>-target track </b>(This option decides which type of object will be recommended (artist, track, album). Only available for some general recommenders like MostPop) </br> 
       -b val （binarizing the rating values. Ratings equal or greater than val will be changed into 1, and ratings lower than val will be changed into 0. e.g. -b 3.0）</br>
       -p (if this option is added, the cross validation wll be excuted parallelly, otherwise excuted one by one) </br>
       -cold threshold (evaluation on cold-start users, users in training set with ratings more than threshold will be removed from the test set)
