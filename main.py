@@ -3,9 +3,6 @@ sys.path.append("..")
 import yue
 from tool.config import Config
 
-
-
-
 if __name__ == '__main__':
 
     print '='*80
@@ -15,11 +12,15 @@ if __name__ == '__main__':
     print '1. BPR'
 
 
-    print 'Content-based Recommenders:'
+    print 'Content-based Recommenders:\n'
 
 
 
-    print 'Hybrid Recommenders:'
+    print 'Hybrid Recommenders:\n'
+
+    print 'Advanced Recommenders:'
+    print 'a1. MEM'
+
 
 
     print 'Baselines:'
@@ -38,6 +39,9 @@ if __name__ == '__main__':
 
     elif order == 'b2':
         conf = Config('./config/rand.conf')
+
+    elif order == 'a1':
+        conf = Config('./config/MEM.conf')
 
     else:
         print 'Error num!'

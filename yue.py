@@ -74,7 +74,11 @@ class Yue(object):
             exec (importStr)
         except ImportError:
             importStr = 'from recommender.cf.' + self.config['recommender'] + ' import ' + self.config['recommender']
-            exec (importStr)
+            try:
+                exec (importStr)
+            except ImportError:
+                importStr = 'from recommender.advanced.' + self.config['recommender'] + ' import ' + self.config['recommender']
+                exec (importStr)
 
         if self.evaluation.contains('-cv'):
             k = int(self.evaluation['-cv'])
