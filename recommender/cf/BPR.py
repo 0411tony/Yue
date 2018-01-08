@@ -21,23 +21,23 @@ class BPR(IterativeRecommender):
 
     def buildModel(self):
         userListened = defaultdict(dict)
-        for user in self.dao.userRecord:
-            for item in self.dao.userRecord[user]:
+        for user in self.data.userRecord:
+            for item in self.data.userRecord[user]:
                 userListened[user][item[self.recType]] = 1
 
         print 'training...'
         iteration = 0
-        itemList = self.dao.name2id[self.recType].keys()
+        itemList = self.data.name2id[self.recType].keys()
         while iteration < self.maxIter:
             self.loss = 0
-            for user in self.dao.userRecord:
-                u = self.dao.getId(user,'user')
-                for item in self.dao.userRecord[user]:
-                    i = self.dao.getId(item[self.recType],self.recType)
+            for user in self.data.userRecord:
+                u = self.data.getId(user,'user')
+                for item in self.data.userRecord[user]:
+                    i = self.data.getId(item[self.recType],self.recType)
                     item_j = choice(itemList)
                     while (userListened[user].has_key(item_j)):
                         item_j = choice(itemList)
-                    j = self.dao.getId(item_j,self.recType)
+                    j = self.data.getId(item_j,self.recType)
                     s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
                     self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
                     self.Q[i] += self.lRate * (1 - s) * self.P[u]
@@ -55,7 +55,7 @@ class BPR(IterativeRecommender):
 
     def predict(self, u):
         'invoked to rank all the items for the user'
-        u = self.dao.getId(u,'user')
+        u = self.data.getId(u,'user')
         return self.Q.dot(self.P[u])
 
 

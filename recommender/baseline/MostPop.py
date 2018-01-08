@@ -16,11 +16,11 @@ class MostPop(Recommender):
         N = int(self.ranking['-topN'])
         self.recommendation = []
         if self.recType=='track':
-            self.recommendation = sorted(self.dao.trackListened.iteritems(),key=lambda d:len(d[1]), reverse=True)[:N]
+            self.recommendation = sorted(self.data.trackListened.iteritems(),key=lambda d:len(d[1]), reverse=True)[:N]
         elif self.recType=='artist':
-            self.recommendation = sorted(self.dao.artistListened.iteritems(),key=lambda d:len(d[1]), reverse=True)[:N]
+            self.recommendation = sorted(self.data.artistListened.iteritems(),key=lambda d:len(d[1]), reverse=True)[:N]
         else:
-            self.recommendation = sorted(self.dao.albumListened.iteritems(), key=lambda d: len(d[1]), reverse=True)[:N]
+            self.recommendation = sorted(self.data.albumListened.iteritems(), key=lambda d: len(d[1]), reverse=True)[:N]
         self.recommendation = [item[0] for item in self.recommendation]
 
 

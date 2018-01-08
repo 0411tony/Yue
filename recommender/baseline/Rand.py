@@ -17,11 +17,11 @@ class Rand(Recommender):
         self.recommendation = []
         self.candidates = []
         if self.recType == 'track':
-            candidates = self.dao.trackListened.keys()
+            candidates = self.data.trackListened.keys()
         elif self.recType == 'artist':
-            candidates = self.dao.artistListened.keys()
+            candidates = self.data.artistListened.keys()
         else:
-            candidates = self.dao.albumListened.keys()
+            candidates = self.data.albumListened.keys()
         for i in range(N):
             item = choice(candidates)
             self.recommendation.append(item)

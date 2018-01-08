@@ -34,8 +34,8 @@ class IterativeRecommender(Recommender):
         print '='*80
 
     def initModel(self):
-        self.P = np.random.rand(self.dao.getSize('user'), self.k)/3 # latent user matrix
-        self.Q = np.random.rand(self.dao.getSize(self.recType), self.k)/3  # latent item matrix
+        self.P = np.random.rand(self.data.getSize('user'), self.k)/3 # latent user matrix
+        self.Q = np.random.rand(self.data.getSize(self.recType), self.k)/3  # latent item matrix
         self.loss, self.lastLoss = 0, 0
 
     def saveModel(self):
@@ -56,7 +56,7 @@ class IterativeRecommender(Recommender):
 
 
     def predict(self,u):
-        return [self.dao.globalMean] * len(self.dao.item)
+        return [self.data.globalMean] * len(self.data.item)
 
     def isConverged(self,iter):
         from math import isnan
@@ -86,16 +86,16 @@ class IterativeRecommender(Recommender):
         res.append('userId: recommendations in (itemId, ranking score) pairs, * means the item matches.\n')
         # predict
         recList = {}
-        userCount = len(self.dao.testSet)
+        userCount = len(self.data.testSet)
         rawRes = {}
-        for i, user in enumerate(self.dao.testSet):
+        for i, user in enumerate(self.data.testSet):
             itemSet = {}
             line = user + ':'
             predictedItems = self.predict(user)
 
             for id, score in enumerate(predictedItems):
 
-                itemSet[self.dao.id2name[self.recType][id]] = score
+                itemSet[self.data.id2name[self.recType][id]] = score
 
             rawRes[user] = itemSet
             Nrecommendations = []
@@ -142,7 +142,7 @@ class IterativeRecommender(Recommender):
                 print self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount)
             for item in recList[user]:
                 line += item
-                if self.dao.testSet[user].has_key(item[0]):
+                if self.data.testSet[user].has_key(item[0]):
                     line += '*'
 
             line += '\n'
@@ -164,7 +164,7 @@ class IterativeRecommender(Recommender):
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
         if self.ranking.contains('-topN'):
-            self.measure = Measure.rankingMeasure(self.dao.testSet, recList, rawRes,N)
+            self.measure = Measure.rankingMeasure(self.data.testSet, recList, rawRes,N)
 
         FileIO.writeFile(outDir, fileName, self.measure)
         print 'The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure))

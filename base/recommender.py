@@ -11,19 +11,22 @@ class Recommender(object):
         self.isSaveModel = False
         self.isLoadModel = False
         self.isOutput = True
-        self.dao = Record(self.config, trainingSet, testSet)
+        self.data = Record(self.config, trainingSet, testSet)
         self.foldInfo = fold
         self.evalConfig = LineConfig(self.config['evaluation.setup'])
-        self.recType = self.evalConfig['-target']
+        if self.evalConfig.contains('-target'):
+            self.recType = self.evalConfig['-target']
+        else:
+            self.recType = 'track'
         if LineConfig(self.config['evaluation.setup']).contains('-cold'):
             #evaluation on cold-start users
             threshold = int(LineConfig(self.config['evaluation.setup'])['-cold'])
             removedUser = {}
-            for user in self.dao.testSet:
-                if self.dao.userRecord.has_key(user) and len(self.dao.userRecord[user])>threshold:
+            for user in self.data.testSet:
+                if self.data.userRecord.has_key(user) and len(self.data.userRecord[user])>threshold:
                     removedUser[user]=1
             for user in removedUser:
-                del self.dao.testSet[user]
+                del self.data.testSet[user]
 
 
     def readConfiguration(self):
@@ -39,7 +42,7 @@ class Recommender(object):
         if LineConfig(self.config['evaluation.setup']).contains('-testSet'):
             print 'Test set:',abspath(LineConfig(self.config['evaluation.setup']).getOption('-testSet'))
         #print 'Count of the users in training set: ',len()
-        self.dao.printTrainingSize()
+        self.data.printTrainingSize()
         print '='*80
 
     def initModel(self):
@@ -73,9 +76,9 @@ class Recommender(object):
         res.append('userId: recommendations in (itemId, ranking score) pairs, * means the item matches.\n')
         # predict
         recList = {}
-        userCount = len(self.dao.testSet)
+        userCount = len(self.data.testSet)
         rawRes = {}
-        for i, user in enumerate(self.dao.testSet):
+        for i, user in enumerate(self.data.testSet):
             itemSet = {}
             line = user + ':'
             predictedItems = self.predict(user)
@@ -85,7 +88,7 @@ class Recommender(object):
             if i % 100 == 0:
                 print self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount)
             for item in recList[user]:
-                if self.dao.testSet[user].has_key(item[0]):
+                if self.data.testSet[user].has_key(item[0]):
                     line += '*'
                 line += item + ','
 
@@ -108,7 +111,7 @@ class Recommender(object):
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
         if self.ranking.contains('-topN'):
-            self.measure = Measure.rankingMeasure(self.dao.testSet, recList, rawRes,N)
+            self.measure = Measure.rankingMeasure(self.data.testSet, recList, rawRes,N)
 
         FileIO.writeFile(outDir, fileName, self.measure)
         print 'The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure))
