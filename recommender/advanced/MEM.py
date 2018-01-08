@@ -61,7 +61,7 @@ class MEM(IterativeRecommender):
                     gradient2 = self.lRate*(1-sigmoid(v_hat.dot(center_v)))*center_v
                     self.Q[center_id]+=gradient
                     global_uv+=gradient/len(self.data.userRecord[user])
-                    global_uv+=gradient2/len(self.data.userRecord[user])
+                    global_uv+=gradient2/len(self.data.userRecord[user])*(end-start)
                     for event in local:
                         id = self.data.getId(event['track'],'track')
                         self.Q[id]+=gradient2/(end-start+1)
@@ -81,20 +81,22 @@ class MEM(IterativeRecommender):
                         loss+=-(log(1-sigmoid(neg_v.dot(v_hat))))
 
             #regularization
-            for album in self.data.album2Track:
-                for track1 in self.data.album2Track[album]:
-                    for track2 in self.data.album2Track[album]:
-                        t1 = self.data.getId(track1,'track')
-                        t2 = self.data.getId(track2,'track')
-                        v1 = self.Q[t1]
-                        v2 = self.Q[t2]
-                        self.Q[t1]+=self.lRate*(exp(v1.dot(v2))*v2)
-                        self.Q[t2] += self.lRate*(exp(v1.dot(v2))*v1)
+            # for album in self.data.album2Track:
+            #     for track1 in self.data.album2Track[album]:
+            #         for track2 in self.data.album2Track[album]:
+            #             t1 = self.data.getId(track1,'track')
+            #             t2 = self.data.getId(track2,'track')
+            #             v1 = self.Q[t1]
+            #             v2 = self.Q[t2]
+            #             self.Q[t1]+=self.lRate*(exp(v1.dot(v2))*v2)
+            #             self.Q[t2] += self.lRate*(exp(v1.dot(v2))*v1)
 
 
                     #print 'window %d finished' %(i)
                 #print 'user %s finished.' %(user)
+            iteration+=1
             print 'iteration %d, loss %.4f' %(iteration,loss)
+
 
         #recent playlist embedding
         self.R = np.zeros((self.data.getSize('user'), self.k))
@@ -118,7 +120,7 @@ class MEM(IterativeRecommender):
         'invoked to rank all the items for the user'
         u = self.data.getId(u,'user')
         #using Euclidean Distance instead
-        return 1/(((self.Q-self.P[u])*(self.Q-self.P[u])).sum(axis=0)+((self.R-self.P[u])*(self.R-self.P[u])).sum(axis=0))
+        return 1/(((self.Q-self.P[u])*(self.Q-self.P[u])).sum(axis=0)+((self.Q-self.R[u])*(self.Q-self.R[u])).sum(axis=0))
 
 
 
