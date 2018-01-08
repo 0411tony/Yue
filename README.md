@@ -129,6 +129,16 @@
 		<th>Item Ranking</th>
 		<th>Paper</th>
   </tr>
+  <tr>
+    <td scope="row">Rand</td>
+    <td>Recommend tracks, artists or albums randomly
+     </td>
+  </tr>
+  <tr>
+    <td scope="row">MostPop</td>
+    <td>Recommend most popular tracks, artists or albums
+     </td>
+  </tr>
     <tr>
 	<td scope="row">BPR</td>
     <td>Rendle et al., BPR: Bayesian Personalized Ranking from Implicit Feedback, UAI 2009.<br>
@@ -140,6 +150,7 @@
     <td>Wang et al., Learning music embedding with metadata for context aware recommendation, ICMR 2016.
      </td>
   </tr>
+    
   </table>
 </div>
 
