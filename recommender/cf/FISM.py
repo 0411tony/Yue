@@ -38,6 +38,8 @@ class FISM(IterativeRecommender):
             for user in self.data.userRecord:
                 u = self.data.getId(user,'user')
                 nu = len(self.data.userRecord[user])
+                if nu==1:
+                    continue
                 X = []
                 for item in self.data.userRecord[user]:
                     x = np.zeros(self.k)
@@ -54,10 +56,11 @@ class FISM(IterativeRecommender):
                         self.loss += 0.5*error**2
                         #update
                         self.Bi[i]+=self.lRate*(error-self.regB*self.Bi[i])
-                        self.Bi[u]-=self.lRate*(error+self.regB*self.Bi[j])
+                        self.Bi[j]-=self.lRate*(error+self.regB*self.Bi[j])
                         self.Q[i]+=self.lRate*(error*t-self.regI*self.Q[i])
                         self.Q[j]-=self.lRate*(error*t+self.regI*self.Q[j])
                         x+=error*(self.Q[i]-self.Q[j])
+                    X.append(x)
                 coef = pow(len(self.data.userRecord[user]) - 1, -self.alpha)
                 for ind,item in enumerate(self.data.userRecord[user]):
                     j = self.data.getId(item[self.recType], self.recType)
