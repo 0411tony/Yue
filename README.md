@@ -149,6 +149,11 @@
     <td scope="row">MEM</td>
     <td>Wang et al., Learning music embedding with metadata for context aware recommendation, ICMR 2016.
      </td>
+  </tr>  
+   <tr>
+    <td scope="row">FISM</td>
+    <td>Kabbur et al., FISM: Factored Item Similarity Models for Top-N Recommender Systems, KDD 2013.
+     </td>
   </tr>
     
   </table>
