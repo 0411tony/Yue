@@ -21,10 +21,12 @@ class FISM(IterativeRecommender):
 
     def readConfiguration(self):
         super(FISM, self).readConfiguration()
-        self.rho = float(LineConfig(self.config['FISM'])['-rho'])
+        self.rho = int(LineConfig(self.config['FISM'])['-rho'])
+        if self.rho<1:
+            self.rho=1
         self.alpha = float(LineConfig(self.config['FISM'])['-alpha'])
 
-    def buildModel(self):        #
+    def buildModel(self):
         userListened = defaultdict(dict)
         for user in self.data.userRecord:
             for item in self.data.userRecord[user]:
@@ -36,32 +38,35 @@ class FISM(IterativeRecommender):
         while iteration < self.maxIter:
             self.loss = 0
             for user in self.data.userRecord:
-                u = self.data.getId(user,'user')
                 nu = len(self.data.userRecord[user])
                 if nu==1:
                     continue
+                coef = pow(nu - 1, -self.alpha)
+                sum_Pj = np.zeros(self.k)
+                for item in self.data.userRecord[user]:
+                    j = self.data.getId(item[self.recType], self.recType)
+                    sum_Pj += self.P[j]
                 X = []
                 for item in self.data.userRecord[user]:
                     x = np.zeros(self.k)
                     i = self.data.getId(item[self.recType],self.recType)
-                    t = self.estimate_t(user, item[self.recType])
-                    for count in range(int(self.rho)+1):
+                    for count in range(self.rho):
                         item_j = choice(itemList)
                         while (userListened[user].has_key(item_j)):
                             item_j = choice(itemList)
                         j = self.data.getId(item_j,self.recType)
-                        r_ui=t.dot(self.Q[i])
-                        r_uj=t.dot(self.Q[j])
+                        r_ui=coef*(sum_Pj-self.P[i]).dot(self.Q[i])+self.Bi[i]
+                        r_uj=coef*(sum_Pj-self.P[j]).dot(self.Q[j])+self.Bi[j]
                         error = 1-(r_ui-r_uj)
                         self.loss += 0.5*error**2
                         #update
                         self.Bi[i]+=self.lRate*(error-self.regB*self.Bi[i])
                         self.Bi[j]-=self.lRate*(error+self.regB*self.Bi[j])
-                        self.Q[i]+=self.lRate*(error*t-self.regI*self.Q[i])
-                        self.Q[j]-=self.lRate*(error*t+self.regI*self.Q[j])
+                        self.Q[i]+=self.lRate*(error*coef*(sum_Pj-self.P[i])-self.regI*self.Q[i])
+                        self.Q[j]-=self.lRate*(error*coef*(sum_Pj-self.P[j])+self.regI*self.Q[j])
                         x+=error*(self.Q[i]-self.Q[j])
                     X.append(x)
-                coef = pow(len(self.data.userRecord[user]) - 1, -self.alpha)
+
                 for ind,item in enumerate(self.data.userRecord[user]):
                     j = self.data.getId(item[self.recType], self.recType)
                     self.P[j]+=self.lRate*(1/float(self.rho)*coef*X[ind]-self.regI*self.P[j])
@@ -71,26 +76,17 @@ class FISM(IterativeRecommender):
             if self.isConverged(iteration):
                 break
 
-    def estimate_t(self,user,item):
-        t=np.zeros(self.k)
-        i = self.data.getId(item,self.recType)
-        for ratedItem in self.data.userRecord[user]:
-            if ratedItem[self.recType]!=item:
-                j = self.data.getId(ratedItem[self.recType],self.recType)
-                t += self.P[j]
-        t*=pow(len(self.data.userRecord[user])-1,-self.alpha)*t
-        t+=self.Bi[i]
-        return t
-
 
 
     def predict(self, user):
         'invoked to rank all the items for the user'
         u = self.data.getId(user,'user')
         #a trick for quick matrix computation
-        coef = pow(len(self.data.userRecord[user])-1,-self.alpha)
-        t = self.estimate_t(user,'')
-        return self.Bi+self.Q.dot(t)-(self.P*self.Q).sum(axis=0)*coef
+        sum_Pj = np.zeros(self.k)
+        for item in self.data.userRecord[user]:
+            j = self.data.getId(item[self.recType], self.recType)
+            sum_Pj += self.P[j]
+        return self.Bi+self.Q.dot(sum_Pj)-(self.P*self.Q).sum(axis=1)
 
 
 
