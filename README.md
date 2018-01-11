@@ -155,6 +155,11 @@
     <td>Kabbur et al., FISM: Factored Item Similarity Models for Top-N Recommender Systems, KDD 2013.
      </td>
   </tr>
+    <tr>
+    <td scope="row">IPF</td>
+    <td>Xiang et al., Temporal Recommendation on Graphs via Long- and Short-term Preference Fusion, KDD 2010.
+     </td>
+  </tr>
     
   </table>
 </div>
