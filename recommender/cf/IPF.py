@@ -10,18 +10,22 @@ class IPF(Recommender):
     def initModel(self):
         super(IPF, self).initModel()
         print 'initializing STG...'
-        self.STG = {}
-        self.STG['user'] = self.data.userRecord
+        userListened = defaultdict(list)
         self.sessionNodes = {}
         for user in self.data.userRecord:
-            t = max(0,len(self.data.userRecord[user])-10)
-            self.sessionNodes[user]=self.data.userRecord[t:]
+            for item in self.data.userRecord[user]:
+                userListened[user].append(item[self.recType])
+        for user in userListened:
+            t = max(0, len(userListened[user]) - 10)
+            self.sessionNodes[user] = userListened[user][t:]
+        self.STG = {}
+        self.STG['user'] = userListened
+        self.STG['session'] = self.sessionNodes
+
         item2session=defaultdict(list)
         for user in self.sessionNodes:
             for item in self.sessionNodes[user]:
                 item2session[item].append(user)
-        
-        self.STG['session'] = self.sessionNodes
         item2user = {}
         if self.recType=='track':
             for item in self.data.trackListened:
@@ -43,7 +47,7 @@ class IPF(Recommender):
 
     def readConfiguration(self):
         super(IPF, self).readConfiguration()
-        self.rho = int(LineConfig(self.config['IPF'])['-rho'])
+        self.rho = float(LineConfig(self.config['IPF'])['-rho'])
         if self.rho<0 or self.rho>1:
             self.rho=0.5
         self.beta = float(LineConfig(self.config['IPF'])['-beta'])
@@ -62,8 +66,8 @@ class IPF(Recommender):
     def predict(self, user):
         #I think the pseudo code in the paper sucks, so I re-implement the algorithm based on my design
         rank = {}
-        for p in self.path:
-            visited = {}
+        visited = {}
+        for p in self.path[2:]:
             queue = []
             queue.append((p[0],user))
             distance = {}
@@ -74,7 +78,7 @@ class IPF(Recommender):
                 rank[p[0] + user] = 1-self.beta
             while len(queue)>0:
                 vType,v = queue.pop()
-                if visited.has_key([vType+v]):
+                if visited.has_key(vType+v):
                     continue
                 visited[vType+v]=1
                 for nextNode in self.STG[p[distance[vType+v]]][v]:
@@ -85,11 +89,15 @@ class IPF(Recommender):
                         visited[nextType+nextNode]=1
                     else:
                         continue
-                    if distance[vType]< distance[p[distance[vType+v]+1]+nextNode]:
-                        rank[nextType+nextNode]=rank[vType+v]*self.probability((vType,v),(nextType,nextNode))
-        recommendedList = [(key,value) for key,value in rank.iteritems() if key[0:4]=='item']
+                    if distance[vType+v]< distance[p[distance[vType+v]+1]+nextNode]:
+                        if not rank.has_key(nextType+nextNode):
+                            rank[nextType+nextNode]=0
+                        rank[nextType+nextNode]+=rank[vType+v]*self.probability((vType,v),(nextType,nextNode))
+        recommendedList = [(key[4:],value) for key,value in rank.iteritems() if key[0:4]=='item']
         recommendedList = sorted(recommendedList,key=lambda d:d[1],reverse=True)
-        return [item[0][4:] for item in recommendedList]
+        recommendedList = [item[0] for item in recommendedList]
+
+        return recommendedList
 
 
 

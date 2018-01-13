@@ -77,13 +77,20 @@ class Recommender(object):
         # predict
         recList = {}
         userCount = len(self.data.testSet)
-        rawRes = {}
-        for i, user in enumerate(self.data.testSet):
-            itemSet = {}
-            line = user + ':'
-            predictedItems = self.predict(user)
 
-            recList[user] = predictedItems
+        for i, user in enumerate(self.data.testSet):
+
+            line = user + ':'
+            if self.data.userRecord.has_key(user):
+                predictedItems = self.predict(user)
+            else:
+                predictedItems = ['0']*N
+
+            # for item in self.data.userRecord[user]:
+            #     if item[self.recType] in predictedItems:
+            #         predictedItems.remove(item[self.recType])
+
+            recList[user] = predictedItems[:N]
 
             if i % 100 == 0:
                 print self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount)
@@ -102,16 +109,13 @@ class Recommender(object):
             if self.ranking.contains('-topN'):
                 fileName = self.config['recommender'] + '@' + currentTime + '-top-' + str(
                     N) + 'items' + self.foldInfo + '.txt'
-            elif self.ranking.contains('-threshold'):
-                fileName = self.config['recommender'] + '@' + currentTime + '-threshold-' + str(
-                    threshold) + self.foldInfo + '.txt'
             FileIO.writeFile(outDir, fileName, res)
             print 'The result has been output to ', abspath(outDir), '.'
         # output evaluation result
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
-        if self.ranking.contains('-topN'):
-            self.measure = Measure.rankingMeasure(self.data.testSet, recList, rawRes,N)
+
+        self.measure = Measure.rankingMeasure(self.data.testSet, recList,N)
 
         FileIO.writeFile(outDir, fileName, self.measure)
         print 'The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure))

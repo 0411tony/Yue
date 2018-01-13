@@ -87,7 +87,7 @@ class IterativeRecommender(Recommender):
         # predict
         recList = {}
         userCount = len(self.data.testSet)
-        rawRes = {}
+
         for i, user in enumerate(self.data.testSet):
             itemSet = {}
             line = user + ':'
@@ -97,7 +97,11 @@ class IterativeRecommender(Recommender):
 
                 itemSet[self.data.id2name[self.recType][id]] = score
 
-            rawRes[user] = itemSet
+            # for item in self.data.userRecord[user]:
+            #     try:
+            #         del itemSet[item[self.recType]]
+            #     except KeyError:
+            #         pass
             Nrecommendations = []
             for item in itemSet:
                 if len(Nrecommendations) < N:
@@ -152,19 +156,17 @@ class IterativeRecommender(Recommender):
         if self.isOutput:
             fileName = ''
             outDir = self.output['-dir']
-            if self.ranking.contains('-topN'):
-                fileName = self.config['recommender'] + '@' + currentTime + '-top-' + str(
-                    N) + 'items' + self.foldInfo + '.txt'
-            elif self.ranking.contains('-threshold'):
-                fileName = self.config['recommender'] + '@' + currentTime + '-threshold-' + str(
-                    threshold) + self.foldInfo + '.txt'
+
+            fileName = self.config['recommender'] + '@' + currentTime + '-top-' + str(
+                N) + 'items' + self.foldInfo + '.txt'
+
             FileIO.writeFile(outDir, fileName, res)
             print 'The result has been output to ', abspath(outDir), '.'
         # output evaluation result
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
-        if self.ranking.contains('-topN'):
-            self.measure = Measure.rankingMeasure(self.data.testSet, recList, rawRes,N)
+
+        self.measure = Measure.rankingMeasure(self.data.testSet, recList, N)
 
         FileIO.writeFile(outDir, fileName, self.measure)
         print 'The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure))

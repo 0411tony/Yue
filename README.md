@@ -156,7 +156,7 @@
      </td>
   </tr>
     <tr>
-    <td scope="row">IPF</td>
+    <td scope="row">IPF (*Removed, not suitable for the music recommendation)</td>
     <td>Xiang et al., Temporal Recommendation on Graphs via Long- and Short-term Preference Fusion, KDD 2010.
      </td>
   </tr>

@@ -37,8 +37,8 @@ if __name__ == '__main__':
     elif order=='2':
         conf = Config('./config/FISM.conf')
 
-    elif order=='3':
-        conf = Config('./config/IPF.conf')
+    # elif order=='3':
+    #     conf = Config('./config/IPF.conf')
 
     elif order == 'b1':
         conf = Config('./config/MostPop.conf')
