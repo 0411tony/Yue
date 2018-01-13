@@ -47,26 +47,49 @@ class IPF(Recommender):
         if self.rho<0 or self.rho>1:
             self.rho=0.5
         self.beta = float(LineConfig(self.config['IPF'])['-beta'])
+        self.eta = float(LineConfig(self.config['IPF'])['-eta'])
 
+    def probability(self,v1,v2):
+        if v1[0]=='user' or v1[0]=='session' and v2[0]=='item':
+            return 1.0/pow(len(self.STG[v1[0]][v1[1]]),self.rho)
+        elif v1[0]=='item' and v2[0]=='user':
+            return pow(self.eta/(self.eta*len(self.STG['item2user'][v1[1]])+
+                                 len(self.STG['item2session'][v1[1]])),self.rho)
+        elif v1[0]=='item' and v2[0]=='session':
+            return pow(1/(self.eta*len(self.STG['item2user'][v1[1]])+
+                                 len(self.STG['item2session'][v1[1]])),self.rho)
 
     def predict(self, user):
-        'invoked to rank all the items for the user'
         #I think the pseudo code in the paper sucks, so I re-implement the algorithm based on my design
-        rank = []
+        rank = {}
         for p in self.path:
             visited = {}
             queue = []
-            queue.append((user, p[1]))
-
-            v,vType = queue.pop()
-            if visited.has_key([v]) and vType=='item':
-                continue
-            visited[vType+v]=1
-            for nextNode in self.STG[vType][v]:
-                if not visited.has_key(vType+nextNode):
-                    distance[vType+nextNode]=distance[vType+v]+1
-                    queue.append((vType,nextNode))
-                if distance[vType]
+            queue.append((p[0],user))
+            distance = {}
+            distance[p[0]+user]=0
+            if p[0]=='user':
+                rank[p[0]+user]=self.beta
+            else:
+                rank[p[0] + user] = 1-self.beta
+            while len(queue)>0:
+                vType,v = queue.pop()
+                if visited.has_key([vType+v]):
+                    continue
+                visited[vType+v]=1
+                for nextNode in self.STG[p[distance[vType+v]]][v]:
+                    nextType = p[distance[vType+v]+1]
+                    if not visited.has_key(nextType+nextNode):
+                        distance[nextType+nextNode]=distance[vType+v]+1
+                        queue.append((nextType,nextNode))
+                        visited[nextType+nextNode]=1
+                    else:
+                        continue
+                    if distance[vType]< distance[p[distance[vType+v]+1]+nextNode]:
+                        rank[nextType+nextNode]=rank[vType+v]*self.probability((vType,v),(nextType,nextNode))
+        recommendedList = [(key,value) for key,value in rank.iteritems() if key[0:4]=='item']
+        recommendedList = sorted(recommendedList,key=lambda d:d[1],reverse=True)
+        return [item[0][4:] for item in recommendedList]
 
 
 
