@@ -22,6 +22,11 @@ class Record(object):
         self.userRecord = defaultdict(list) #user data in training set. form: {user:[record1,record2]}
         self.testSet = defaultdict(dict) #user data in test set. form: {user:{recommenedObject1:1,recommendedObject:1}}
         self.recordCount = 0
+        self.columns = {}
+        labels = self.recordConfig['-columns'].split(',')
+        for col in labels:
+            label = col.split(':')
+            self.columns[label[0]] = int(label[1])
         if self.evalConfig.contains('-byTime'):
             trainingSet,testSet = self.splitDataByTime(trainingSet)
         self.preprocess(trainingSet,testSet)
