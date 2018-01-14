@@ -252,8 +252,6 @@ class HME(IterativeRecommender):
         # Training get top-k friends
         print 'Generating user embedding...'
 
-        self.topKSim = {}
-
 
         # for user in self.data.userRecord:
         #     playList = []
@@ -307,9 +305,9 @@ class HME(IterativeRecommender):
                     self.P[u] -= self.lRate * self.regU * self.P[u]
                     self.Q[i] -= self.lRate * self.regI * self.Q[i]
                     self.Q[j] -= self.lRate * self.regI * self.Q[j]
-                    self.loss += -log(s)+0.5*(self.P[u]-self.R[u]).dot(self.P[u]-self.R[u])\
-                                 +0.5*(self.P[u]-self.G[u]).dot(self.P[u]-self.G[u])
-            self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()
+                    self.loss += -log(s)
+            self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()\
+                         +0.5*((self.P-self.R)*(self.P-self.R)).sum()+0.5*((self.P-self.G)*(self.P-self.G)).sum()
             iteration += 1
             if self.isConverged(iteration):
                 break
