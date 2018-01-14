@@ -46,13 +46,17 @@ class HME(IterativeRecommender):
         # filter isolated nodes and low ratings
         # Definition of Meta-Path
 
-        self.b = np.random.random(self.data.getSize(self.recType))
-        self.G = np.random.rand(self.data.getSize(self.recType), self.k) / 10
-        self.W = np.random.rand(self.data.getSize('user'), self.k) / 10
+        self.G = np.random.rand(self.data.getSize('user'), self.k) / 10 #global user preference
+        self.R = np.random.rand(self.data.getSize('user'), self.k) / 10 #recent user preference
 
         self.user2track = defaultdict(list)
         self.user2artist = defaultdict(list)
         self.user2album = defaultdict(list)
+
+        self.r_user2track = defaultdict(list) #recent
+        self.r_user2artist = defaultdict(list)
+        self.r_user2album = defaultdict(list)
+        
         self.track2user = defaultdict(list)
         self.artist2user = defaultdict(list)
         self.album2user = defaultdict(list)
@@ -65,8 +69,15 @@ class HME(IterativeRecommender):
 
         for user in self.data.userRecord:
             for item in self.data.userRecord[user]:
-                self.user2track[user].append(item[self.recType])
+                self.user2track[user].append(item['track'])
                 self.user2artist[user].append(item['artist'])
+                if self.data.columns.has_key('album'):
+                    self.user2album[user].append(item['album'])
+
+            recent = max(0, len(self.data.userRecord[user]) - 20)
+            for item in self.data.userRecord[user][recent:]:
+                self.r_user2track[user].append(item['track'])
+                self.r_user2artist[user].append(item['artist'])
                 if self.data.columns.has_key('album'):
                     self.user2album[user].append(item['album'])
 
@@ -100,9 +111,10 @@ class HME(IterativeRecommender):
 
         print 'Generating random meta-path random walks...'
 
-        #global Preference
+        #global walks
         self.walks = []
-        # self.usercovered = {}
+        #recent walks
+        self.r_walks = []
         p1 = 'UTU'
         p2 = 'UAU'
         p3 = 'UZU'
@@ -174,6 +186,65 @@ class HME(IterativeRecommender):
                         # pass
         shuffle(self.walks)
 
+        #recent random walks
+        for user in self.data.userRecord:
+
+            for mp in mPaths:
+                for t in range(self.walkCount):
+
+                    path = [user]
+                    lastNode = user
+                    nextNode = user
+                    lastType = 'U'
+                    for i in range(self.walkLength / len(mp[1:])):
+                        for tp in mp[1:]:
+                            try:
+                                if tp == 'T' and lastType == 'U':
+                                    nextNode = choice(self.r_user2track[lastNode])
+                                elif tp == 'T' and lastType == 'A':
+                                    nextNode = choice(self.artist2track[lastNode])
+                                elif tp == 'T' and lastType == 'Z':
+                                    nextNode = choice(self.album2track[lastNode])
+                                elif tp == 'A' and lastType == 'T':
+                                    nextNode = self.track2artst[lastNode]
+                                elif tp == 'A' and lastType == 'Z':
+                                    nextNode = self.album2artist[lastNode]
+                                elif tp == 'A' and lastType == 'U':
+                                    nextNode = choice(self.r_user2artist[lastNode])
+
+                                elif tp == 'Z' and lastType == 'U':
+                                    nextNode = choice(self.r_user2album[lastNode])
+                                elif tp == 'Z' and lastType == 'A':
+                                    nextNode = choice(self.artist2album[lastNode])
+                                elif tp == 'Z' and lastType == 'T':
+                                    nextNode = self.track2album[lastNode]
+
+                                elif tp == 'U':
+                                    if lastType == 'T':
+                                        nextNode = choice(self.track2user[lastNode])
+                                    elif lastType == 'Z':
+                                        nextNode = choice(self.album2user[lastNode])
+                                    elif lastType == 'A':
+                                        nextNode = choice(self.artist2user[lastNode])
+
+                                path.append(nextNode)
+                                lastNode = nextNode
+                                lastType = tp
+
+                            except (KeyError, IndexError):
+                                path = []
+                                break
+
+                    if path:
+                        self.r_walks.append(path)
+                        # for node in path:
+                        #     if node[1] == 'U' or node[1] == 'F':
+                        #         self.usercovered[node[0]] = 1
+                        # print path
+                        # if mp == 'UFIU':
+                        # pass
+        shuffle(self.r_walks)
+
 
         #local Preference
 
@@ -189,63 +260,55 @@ class HME(IterativeRecommender):
         #     for item in self.data.userRecord[user]:
         #         playList.append(item['track'])
         #     self.walks.append(playList)
-        shuffle(self.walks)
-        model = w2v.Word2Vec(self.walks, size=self.k, window=5, min_count=0, iter=self.epoch)
-        for track in self.data.trackListened:
-            tid = self.data.getId(track, 'track')
-            try:
-                self.Q[tid] = model.wv[track]
-            except KeyError:
-                pass
+        g_model = w2v.Word2Vec(self.walks, size=self.k, window=5, min_count=0, iter=self.epoch)
+        # for track in self.data.trackListened:
+        #     tid = self.data.getId(track, 'track')
+        #     try:
+        #         self.Q[tid] = model.wv[track]
+        #     except KeyError:
+        #         pass
 
-        self.R = np.zeros((self.data.getSize('user'), self.k))
+        #self.R = np.zeros((self.data.getSize('user'), self.k))
         for user in self.data.userRecord:
             uid = self.data.getId(user,'user')
-            # global_uv = np.zeros(self.k)
-            # local_uv = np.zeros(self.k)
-            # for event in self.data.userRecord[user]:
-            #     tid = self.data.getId(event['track'],'track')
-            #     global_uv +=self.Q[tid]
-            # self.P[uid] = global_uv/len(self.data.userRecord[user])
-            # recent = max(0,len(self.data.userRecord[user])-20)
-            # for event in self.data.userRecord[user][recent:]:
-            #     try:
-            #         local_uv +=model.wv[event['track']]
-            #     except KeyError:
-            #         recent-=1
-            # self.R[uid] = local_uv/recent
-            self.R[uid] = model.wv[user]
+            self.G[uid] = g_model.wv[user]
+
+        r_model = w2v.Word2Vec(self.r_walks, size=self.k, window=5, min_count=0, iter=self.epoch)
+        for user in self.data.userRecord:
+            uid = self.data.getId(user,'user')
+            self.R[uid] = r_model.wv[user]
 
         print 'User embedding generated.'
         #
         userListened = defaultdict(dict)
         for user in self.data.userRecord:
             for item in self.data.userRecord[user]:
-                userListened[user][item[self.recType]] = 1
+                userListened[user][item['track']] = 1
 
         print 'training...'
         iteration = 0
-        itemList = self.data.name2id[self.recType].keys()
+        itemList = self.data.name2id['track'].keys()
         while iteration < self.maxIter:
             self.loss = 0
             for user in self.data.userRecord:
 
                 u = self.data.getId(user, 'user')
                 for item in self.data.userRecord[user]:
-                    i = self.data.getId(item[self.recType], self.recType)
+                    i = self.data.getId(item['track'], 'track')
                     item_j = choice(itemList)
                     while (userListened[user].has_key(item_j)):
                         item_j = choice(itemList)
-                    j = self.data.getId(item_j, self.recType)
+                    j = self.data.getId(item_j, 'track')
                     s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
                     self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
                     self.Q[i] += self.lRate * (1 - s) * self.P[u]
                     self.Q[j] -= self.lRate * (1 - s) * self.P[u]
-                    self.P[u] -= self.lRate * 0.5*(self.P[u]-self.R[u])
+                    self.P[u] -= self.lRate * (0.5*(self.P[u]-self.R[u])+0.5*(self.P[u]-self.G[u]))
                     self.P[u] -= self.lRate * self.regU * self.P[u]
                     self.Q[i] -= self.lRate * self.regI * self.Q[i]
                     self.Q[j] -= self.lRate * self.regI * self.Q[j]
-                    self.loss += -log(s)+0.5*(self.P[u]-self.R[u]).dot(self.P[u]-self.R[u])
+                    self.loss += -log(s)+0.5*(self.P[u]-self.R[u]).dot(self.P[u]-self.R[u])\
+                                 +0.5*(self.P[u]-self.G[u]).dot(self.P[u]-self.G[u])
             self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()
             iteration += 1
             if self.isConverged(iteration):
