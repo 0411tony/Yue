@@ -25,8 +25,9 @@ class WRMF(IterativeRecommender):
         print 'training...'
         iteration = 0
         while iteration < self.maxIter:
-            A = self.Y.T.dot(self.Y)
-            B = self.X.T.dot(self.X)
+            self.loss = 0
+
+
             for user in self.data.name2id['user']:
                 C_u = np.ones(self.data.getSize(self.recType))
                 P_u = np.zeros(self.data.getSize(self.recType))
@@ -36,14 +37,25 @@ class WRMF(IterativeRecommender):
                     r_ui = self.data.trackListened[item[self.recType]][user]
                     C_u[iid]+=40*r_ui
                     P_u[iid]=1
+                    self.loss+=C_u[iid]*(1-self.X[uid].dot(self.Y[iid]))
 
-                LEFT = (A+self.Y.T*(C_u-np.ones(self.data.getSize(self.recType))).dot(self.Y)+self.regU*np.eye(self.k))**-1
-                self.P[uid] = LEFT.dot(self.Y.T)*C_u.dot(P_u)
+                LEFT = ((self.Y.T*C_u).dot(self.Y)+self.regU*np.eye(self.k))**-1
+                self.X[uid] = (LEFT.dot(self.Y.T)*C_u).dot(P_u)
 
 
+            for item in self.data.name2id[self.recType]:
+                C_i = np.ones(self.data.getSize('user'))
+                P_i = np.zeros(self.data.getSize('user'))
+                iid = self.data.getId(item, self.recType)
+                for user in self.data.trackListened[item]:
+                    uid = self.data.getId(user, 'user')
+                    r_ui = self.data.trackListened[item][user]
+                    C_i[uid] += 40 * r_ui
+                    P_i[uid] = 1
 
-
-            self.loss = 0
+                LEFT = ((self.X.T * C_i).dot(self.X) + self.regU * np.eye(
+                           self.k)) ** -1
+                self.Y[iid] = (LEFT.dot(self.X.T) * C_i).dot(P_i)
 
             self.loss += self.regU * (self.X * self.X).sum() + self.regU * (self.Y * self.Y).sum()
             iteration += 1
@@ -54,7 +66,7 @@ class WRMF(IterativeRecommender):
     def predict(self, u):
         'invoked to rank all the items for the user'
         u = self.data.getId(u,'user')
-        return self.Q.dot(self.P[u])
+        return self.Y.dot(self.X[u])
 
 
 

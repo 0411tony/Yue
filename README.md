@@ -160,7 +160,11 @@
     <td>Xiang et al., Temporal Recommendation on Graphs via Long- and Short-term Preference Fusion, KDD 2010.
      </td>
   </tr>
-    
+    <tr>
+    <td scope="row">WRMF</td>
+    <td>Hu et al., Collaborative Filtering for Implicit Feedback Datasets, KDD 2009.
+     </td>
+  </tr>
   </table>
 </div>
 
