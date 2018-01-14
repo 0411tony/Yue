@@ -9,7 +9,7 @@ if __name__ == '__main__':
     print '   Yue: Library for Music Recommendation.   '
     print '='*80
     print 'CF-based Recommenders:'
-    print '1. BPR   2. FISM'   #3. IPF'
+    print '1. BPR   2. FISM   3. WRMF'
 
 
     print 'Content-based Recommenders:\n'
@@ -37,8 +37,8 @@ if __name__ == '__main__':
     elif order=='2':
         conf = Config('./config/FISM.conf')
 
-    # elif order=='3':
-    #     conf = Config('./config/IPF.conf')
+    elif order=='3':
+        conf = Config('./config/WRMF.conf')
 
     elif order == 'b1':
         conf = Config('./config/MostPop.conf')

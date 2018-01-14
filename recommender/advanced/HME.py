@@ -18,20 +18,18 @@ class HME(IterativeRecommender):
         options = config.LineConfig(self.config['HME'])
         self.walkCount = int(options['-T'])
         self.walkLength = int(options['-L'])
-        self.walkDim = int(options['-l'])
         self.winSize = int(options['-w'])
-        self.topK = int(options['-k'])
-        self.alpha = float(options['-a'])
+        self.alpha = float(options['-alpha'])
+        self.beta = float(options['-beta'])
         self.epoch = int(options['-ep'])
-        self.neg = int(options['-neg'])
-        self.rate = float(options['-r'])
+
 
     def printAlgorConfig(self):
         super(HME, self).printAlgorConfig()
         print 'Specified Arguments of', self.config['recommender'] + ':'
         print 'Walks count per user', self.walkCount
         print 'Length of each walk', self.walkLength
-        print 'Dimension of user embedding', self.walkDim
+        print 'alpha:',self.alpha,' beta:',self.beta
         print '=' * 80
 
     def buildModel(self):
@@ -190,7 +188,7 @@ class HME(IterativeRecommender):
         for user in self.data.userRecord:
 
             for mp in mPaths:
-                for t in range(self.walkCount):
+                for t in range(self.walkCount/2):
 
                     path = [user]
                     lastNode = user
@@ -249,6 +247,7 @@ class HME(IterativeRecommender):
         #local Preference
 
         print 'walks:', len(self.walks)
+        print 'recent walks',len(self.r_walks)
         # Training get top-k friends
         print 'Generating user embedding...'
 
@@ -258,7 +257,7 @@ class HME(IterativeRecommender):
         #     for item in self.data.userRecord[user]:
         #         playList.append(item['track'])
         #     self.walks.append(playList)
-        g_model = w2v.Word2Vec(self.walks, size=self.k, window=5, min_count=0, iter=self.epoch)
+        g_model = w2v.Word2Vec(self.walks, size=self.k, window=self.winSize, min_count=0, iter=self.epoch)
         # for track in self.data.trackListened:
         #     tid = self.data.getId(track, 'track')
         #     try:
@@ -271,7 +270,7 @@ class HME(IterativeRecommender):
             uid = self.data.getId(user,'user')
             self.G[uid] = g_model.wv[user]
 
-        r_model = w2v.Word2Vec(self.r_walks, size=self.k, window=5, min_count=0, iter=self.epoch)
+        r_model = w2v.Word2Vec(self.r_walks, size=self.k, window=self.winSize, min_count=0, iter=self.epoch)
         for user in self.data.userRecord:
             uid = self.data.getId(user,'user')
             self.R[uid] = r_model.wv[user]
@@ -301,13 +300,13 @@ class HME(IterativeRecommender):
                     self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
                     self.Q[i] += self.lRate * (1 - s) * self.P[u]
                     self.Q[j] -= self.lRate * (1 - s) * self.P[u]
-                    self.P[u] -= self.lRate * (0.5*(self.P[u]-self.R[u])+0.5*(self.P[u]-self.G[u]))
+                    self.P[u] -= self.lRate * self.alpha*(self.beta*(self.P[u]-self.G[u])+(1-self.beta)*(self.P[u]-self.R[u]))
                     self.P[u] -= self.lRate * self.regU * self.P[u]
                     self.Q[i] -= self.lRate * self.regI * self.Q[i]
                     self.Q[j] -= self.lRate * self.regI * self.Q[j]
                     self.loss += -log(s)
             self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()\
-                         +0.5*((self.P-self.R)*(self.P-self.R)).sum()+0.5*((self.P-self.G)*(self.P-self.G)).sum()
+                         +self.alpha*((1-self.beta)*((self.P-self.R)*(self.P-self.R)).sum()+self.beta*((self.P-self.G)*(self.P-self.G)).sum())
             iteration += 1
             if self.isConverged(iteration):
                 break
