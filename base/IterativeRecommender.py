@@ -76,9 +76,10 @@ class IterativeRecommender(Recommender):
     def evalRanking(self):
         res = []  # used to contain the text of the result
         N = 0
-        threshold = 0
+        top = self.ranking['-topN'].split(',')
+        top = [int(num) for num in top]
+        N = max(top)
 
-        N = int(self.ranking['-topN'])
         if N > 100 or N < 0:
             print 'N can not be larger than 100! It has been reassigned with 10'
             N = 10
@@ -156,17 +157,16 @@ class IterativeRecommender(Recommender):
         if self.isOutput:
             fileName = ''
             outDir = self.output['-dir']
-
-            fileName = self.config['recommender'] + '@' + currentTime + '-top-' + str(
-                N) + 'items' + self.foldInfo + '.txt'
-
+            if self.ranking.contains('-topN'):
+                fileName = self.config['recommender'] + '@' + currentTime + '-top-' + self.ranking['-topN']\
+                           + 'items' + self.foldInfo + '.txt'
             FileIO.writeFile(outDir, fileName, res)
             print 'The result has been output to ', abspath(outDir), '.'
         # output evaluation result
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
 
-        self.measure = Measure.rankingMeasure(self.data.testSet, recList, N)
+        self.measure = Measure.rankingMeasure(self.data.testSet, recList,top)
 
         FileIO.writeFile(outDir, fileName, self.measure)
         print 'The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure))

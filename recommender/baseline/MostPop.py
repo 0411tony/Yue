@@ -13,14 +13,13 @@ class MostPop(Recommender):
 
     def buildModel(self):
 
-        N = int(self.ranking['-topN'])
         self.recommendation = []
         if self.recType=='track':
-            self.recommendation = sorted(self.data.trackListened.iteritems(),key=lambda d:len(d[1]), reverse=True)[:N]
+            self.recommendation = sorted(self.data.trackListened.iteritems(),key=lambda d:len(d[1]), reverse=True)
         elif self.recType=='artist':
-            self.recommendation = sorted(self.data.artistListened.iteritems(),key=lambda d:len(d[1]), reverse=True)[:N]
+            self.recommendation = sorted(self.data.artistListened.iteritems(),key=lambda d:len(d[1]), reverse=True)
         else:
-            self.recommendation = sorted(self.data.albumListened.iteritems(), key=lambda d: len(d[1]), reverse=True)[:N]
+            self.recommendation = sorted(self.data.albumListened.iteritems(), key=lambda d: len(d[1]), reverse=True)
         self.recommendation = [item[0] for item in self.recommendation]
 
 

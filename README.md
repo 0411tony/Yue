@@ -63,8 +63,8 @@
   </tr>
   <tr>
     <td scope="row">item.ranking</td>
-    <td>off -topN 10 </td>
-    <td>-topN N: the length of the recommendation list</br>
+    <td>off -topN 5,10,20 </td>
+    <td>-topN N1,N2,N3...: the length of the recommendation list. *Yue can generate multiple evaluation results for different N at the same time</br>
     </td>
   </tr>
   <tr>

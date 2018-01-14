@@ -15,20 +15,27 @@ class Measure(object):
     @staticmethod
     def rankingMeasure(origin,res,N):
         measure = []
-        if len(origin)!= len(res):
-            print 'Lengths do not match!'
-            exit(-1)
-        hits = Measure.hits(origin,res)
-        prec = Measure.precision(hits,N)
-        measure.append('Precision:' + str(prec)+'\n')
-        recall = Measure.recall(hits,origin)
-        measure.append('Recall:' + str(recall)+'\n')
-        F1 = Measure.F1(prec,recall)
-        measure.append('F1:' + str(F1) + '\n')
-        MAP = Measure.MAP(origin,res,N)
-        measure.append('MAP:' + str(MAP) + '\n')
-        #AUC = Measure.AUC(origin,res,rawRes)
-        #measure.append('AUC:' + str(AUC) + '\n')
+        for n in N:
+            predicted = {}
+            for user in res:
+                predicted[user] = res[user][:n]
+            indicators = []
+            if len(origin)!= len(predicted):
+                print 'The Lengths of test set and predicted set are not match!'
+                exit(-1)
+            hits = Measure.hits(origin,predicted)
+            prec = Measure.precision(hits,n)
+            indicators.append('Precision:' + str(prec)+'\n')
+            recall = Measure.recall(hits,origin)
+            indicators.append('Recall:' + str(recall)+'\n')
+            F1 = Measure.F1(prec,recall)
+            indicators.append('F1:' + str(F1) + '\n')
+            MAP = Measure.MAP(origin,predicted,n)
+            indicators.append('MAP:' + str(MAP) + '\n')
+            #AUC = Measure.AUC(origin,res,rawRes)
+            #measure.append('AUC:' + str(AUC) + '\n')
+            measure.append('Top '+str(n)+'\n')
+            measure+=indicators
         return measure
 
     @staticmethod

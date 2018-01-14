@@ -1,6 +1,6 @@
 #coding:utf8
 from base.recommender import Recommender
-from random import choice
+from random import shuffle
 import numpy as np
 class Rand(Recommender):
 
@@ -13,8 +13,6 @@ class Rand(Recommender):
 
     def predict(self, u):
         'invoked to rank all the items for the user'
-        N = int(self.ranking['-topN'])
-        self.recommendation = []
         self.candidates = []
         if self.recType == 'track':
             candidates = self.data.trackListened.keys()
@@ -22,9 +20,8 @@ class Rand(Recommender):
             candidates = self.data.artistListened.keys()
         else:
             candidates = self.data.albumListened.keys()
-        for i in range(N):
-            item = choice(candidates)
-            self.recommendation.append(item)
-        return self.recommendation
+
+        shuffle(candidates)
+        return self.candidates
 
 

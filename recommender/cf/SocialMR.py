@@ -361,7 +361,7 @@ class SocialMR(IterativeRecommender):
                         self.P[u] += self.lRate*self.alpha*(sim-self.P[u].dot(self.G[f_id]))*self.G[f_id]
                         self.G[f_id] +=self.lRate*self.alpha*((sim-self.P[u].dot(self.G[f_id]))*self.P[u]-self.regU*self.G[f_id])
                         self.loss += -log(s)+self.alpha*(sim-self.P[u].dot(self.G[f_id]))**2
-                self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()+self+self.regI * (self.G * self.G).sum()
+                self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()+self.regI * (self.G * self.G).sum()
                 iteration += 1
                 if self.isConverged(iteration):
                     break
