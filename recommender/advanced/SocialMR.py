@@ -222,85 +222,83 @@ class SocialMR(IterativeRecommender):
 
         #self.topKSim = pickle.load(pkl_file)
 
-        print 'Decomposing...'
+
 #        self.F = np.random.rand(self.data.trainingSize()[0], self.k) / 10
         # prepare Pu set, IPu set, and Nu set
-        self.b = np.random.random(self.dao.trainingSize()[1])
+        self.b = np.random.random(self.data.getSize('track'))/10
         print 'Preparing item sets...'
         self.PositiveSet = defaultdict(dict)
+        self.pSet = defaultdict(list)
         self.IPositiveSet = defaultdict(dict)
+        self.ipSet = defaultdict(list)
         # self.NegativeSet = defaultdict(list)
 
         for user in self.data.userRecord:
             for item in self.data.userRecord[user]:
                 self.PositiveSet[user][item['track']] = 1
+                self.pSet[user].append(item['track'])
 
             for friend,sim in self.topKSim[user]:
                     for item in self.data.userRecord[friend]:
                         if not self.PositiveSet[user].has_key(item['track']):
-                            if not self.IPositiveSet[user].has_key(item['track']):
-                                self.IPositiveSet[user][item['track']] = 1
+                            self.IPositiveSet[user][item['track']] = 1
+                            self.ipSet[user].append(item['track'])
 
-        Suk = 1
+        Suk = 0.5
         print 'Training...'
         iteration = 0
         while iteration < self.maxIter:
             self.loss = 0
             itemList = self.data.name2id['track'].keys()
-            for user in self.PositiveSet:
+            for user in self.pSet:
                 u = self.data.getId(user,'user')
-                kItems = self.IPositiveSet[user].keys()
-                for item in self.PositiveSet[user]:
+                kItems = self.ipSet[user]
+                for item in self.pSet[user]:
                     i = self.data.getId(item,'track')
-                    if len(self.IPositiveSet[user]) > 0:
+                    if len(self.ipSet[user]) > 0:
                         item_k = choice(kItems)
                         k = self.data.getId(item_k,'track')
-                        s = sigmoid(
-                            (self.P[u].dot(self.Q[i]) + self.b[i] - self.P[u].dot(self.Q[k]) - self.b[k]) / (Suk + 1))
-                        self.P[u] += 1 / (Suk + 1) * self.lRate * (1 - s) * (self.Q[i] - self.Q[k])
-                        self.Q[i] += 1 / (Suk + 1) * self.lRate * (1 - s) * self.P[u]
-                        self.Q[k] -= 1 / (Suk + 1) * self.lRate * (1 - s) * self.P[u]
-                        self.b[i] += 1 / (Suk + 1) * self.lRate * (1 - s)
-                        self.b[k] -= 1 / (Suk + 1) * self.lRate * (1 - s)
+                        s1 = sigmoid((self.P[u].dot(self.Q[i])- self.P[u].dot(self.Q[k])) / (Suk + 1))
+                        self.P[u] += 1 / (Suk + 1) * self.lRate * (1 - s1) * (self.Q[i] - self.Q[k])
+                        self.Q[i] += 1 / (Suk + 1) * self.lRate * (1 - s1) * self.P[u]
+                        self.Q[k] -= 1 / (Suk + 1) * self.lRate * (1 - s1) * self.P[u]
                         item_j = ''
                         # if len(self.NegativeSet[user])>0:
                         #     item_j = choice(self.NegativeSet[user])
                         # else:
                         item_j = choice(itemList)
-                        while (self.PositiveSet[user].has_key(item_j) or self.IPositiveSet.has_key(item_j)):
+                        while (self.PositiveSet[user].has_key(item_j) or self.IPositiveSet[user].has_key(item_j)):
                             item_j = choice(itemList)
                         j = self.data.getId(item_j,'track')
-                        s = sigmoid(self.P[u].dot(self.Q[k]) + self.b[k] - self.P[u].dot(self.Q[j]) - self.b[j])
-                        self.P[u] += self.lRate * (1 - s) * (self.Q[k] - self.Q[j])
-                        self.Q[k] += self.lRate * (1 - s) * self.P[u]
-                        self.Q[j] -= self.lRate * (1 - s) * self.P[u]
-                        self.b[k] += self.lRate * (1 - s)
-                        self.b[j] -= self.lRate * (1 - s)
+                        s2 = sigmoid(self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j]) )
+                        self.P[u] += self.lRate * (1 - s2) * (self.Q[k] - self.Q[j])
+                        self.Q[k] += self.lRate * (1 - s2) * self.P[u]
+                        self.Q[j] -= self.lRate * (1 - s2) * self.P[u]
+
 
                         self.P[u] -= self.lRate * self.regU * self.P[u]
                         self.Q[i] -= self.lRate * self.regI * self.Q[i]
                         self.Q[j] -= self.lRate * self.regI * self.Q[j]
                         self.Q[k] -= self.lRate * self.regI * self.Q[k]
 
-                        self.loss += -log(sigmoid(
-                            (self.P[u].dot(self.Q[i]) + self.b[i] - self.P[u].dot(self.Q[k]) - self.b[k]) / (Suk + 1))) \
-                                     - log(
-                            sigmoid(self.P[u].dot(self.Q[k]) + self.b[k] - self.P[u].dot(self.Q[j]) - self.b[j]))
+                        self.loss += -log(s1)-log(s2)
+
                     else:
                         item_j = choice(itemList)
                         while (self.PositiveSet[user].has_key(item_j)):
                             item_j = choice(itemList)
                         j = self.data.getId(item_j,'track')
-                        s = sigmoid(self.P[u].dot(self.Q[i]) + self.b[i] - self.P[u].dot(self.Q[j]) - self.b[j])
+                        s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
                         self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
                         self.Q[i] += self.lRate * (1 - s) * self.P[u]
                         self.Q[j] -= self.lRate * (1 - s) * self.P[u]
-                        self.b[i] += self.lRate * (1 - s)
-                        self.b[j] -= self.lRate * (1 - s)
+                        self.P[u] -= self.lRate * self.regU * self.P[u]
+                        self.Q[i] -= self.lRate * self.regI * self.Q[i]
+                        self.Q[j] -= self.lRate * self.regI * self.Q[j]
 
                         self.loss += -log(s)
 
-            self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum() + self.b.dot(self.b)
+            self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()
             iteration += 1
             if self.isConverged(iteration):
                 break
