@@ -99,6 +99,8 @@ class HME(IterativeRecommender):
                     self.album2artist[key] = artist
 
         print 'Generating random meta-path random walks...'
+
+        #global Preference
         self.walks = []
         # self.usercovered = {}
         p1 = 'UTU'
@@ -171,6 +173,10 @@ class HME(IterativeRecommender):
                         # if mp == 'UFIU':
                         # pass
         shuffle(self.walks)
+
+
+        #local Preference
+
         print 'walks:', len(self.walks)
         # Training get top-k friends
         print 'Generating user embedding...'
