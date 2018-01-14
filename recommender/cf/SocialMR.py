@@ -330,6 +330,42 @@ class SocialMR(IterativeRecommender):
             if self.isConverged(iteration):
                 break
 
+            userListened = defaultdict(dict)
+            for user in self.data.userRecord:
+                for item in self.data.userRecord[user]:
+                    userListened[user][item[self.recType]] = 1
+
+            print 'training...'
+            iteration = 0
+            itemList = self.data.name2id[self.recType].keys()
+            while iteration < self.maxIter:
+                self.loss = 0
+                for user in self.data.userRecord:
+                    u = self.data.getId(user, 'user')
+                    for item in self.data.userRecord[user]:
+                        i = self.data.getId(item[self.recType], self.recType)
+                        item_j = choice(itemList)
+                        while (userListened[user].has_key(item_j)):
+                            item_j = choice(itemList)
+                        j = self.data.getId(item_j, self.recType)
+                        s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
+                        self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
+                        self.Q[i] += self.lRate * (1 - s) * self.P[u]
+                        self.Q[j] -= self.lRate * (1 - s) * self.P[u]
+
+                        self.P[u] -= self.lRate * self.regU * self.P[u]
+                        self.Q[i] -= self.lRate * self.regI * self.Q[i]
+                        self.Q[j] -= self.lRate * self.regI * self.Q[j]
+                        friend,sim = choice(self.topKSim[user])
+                        f_id = self.data.getId(friend,'user')
+                        self.P[u] += self.lRate*self.alpha*(sim-self.P[u].dot(self.G[f_id]))*self.G[f_id]
+                        self.G[f_id] +=self.lRate*self.alpha*((sim-self.P[u].dot(self.G[f_id]))*self.P[u]-self.regU*self.G[f_id])
+                        self.loss += -log(s)+self.alpha*(sim-self.P[u].dot(self.G[f_id]))**2
+                self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()+self+self.regI * (self.G * self.G).sum()
+                iteration += 1
+                if self.isConverged(iteration):
+                    break
+
 
     def predict(self, u):
         'invoked to rank all the items for the user'
