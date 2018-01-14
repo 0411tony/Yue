@@ -225,146 +225,121 @@ class SocialMR(IterativeRecommender):
         print 'Decomposing...'
 #        self.F = np.random.rand(self.data.trainingSize()[0], self.k) / 10
         # prepare Pu set, IPu set, and Nu set
+        self.b = np.random.random(self.dao.trainingSize()[1])
         print 'Preparing item sets...'
         self.PositiveSet = defaultdict(dict)
         self.IPositiveSet = defaultdict(dict)
-
+        # self.NegativeSet = defaultdict(list)
 
         for user in self.data.userRecord:
             for item in self.data.userRecord[user]:
-                self.PositiveSet[user][item[self.recType]] = 1
-                    # else:
-                    #     self.NegativeSet[user].append(item)
-            if self.topKSim.has_key(user):
-                for friend in self.topKSim[user][:self.topK]:
-                    for item in self.data.userRecord[friend[0]]:
-                        if not self.PositiveSet[user].has_key(item[self.recType]):
-                            if not self.IPositiveSet[user].has_key(item[self.recType]):
-                                self.IPositiveSet[user][item[self.recType]] = 1
-                            else:
-                                self.IPositiveSet[user][item[self.recType]] += 1
-        iteration = 0
-        #while iteration < self.maxIter:
-            #self.loss = 0
-            # itemList = self.data.name2id[self.recType].keys()
-            #
-            # for user in self.PositiveSet:
-            #     kItems = self.IPositiveSet[user].keys()
-            #     u = self.data.getId(user,'user')
-            #     for item in self.PositiveSet[user]:
-            #         i = self.data.getId(item,self.recType)
-            #         # if len(self.IPositiveSet[user]) > 0:
-            #         #     item_k = choice(kItems)
-            #         #     k = self.data.getId(item_k,self.recType)
-            #         #     Suk = 0.1
-            #         #     self.P[u] += (1 / (Suk + 1)) * self.lRate * (1 - sigmoid(
-            #         #         (self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]) ) / (Suk + 1))) \
-            #         #                  * (self.Q[i] - self.Q[k])
-            #         #     self.Q[i] += (1 / (Suk + 1)) * self.lRate * (1 - sigmoid(
-            #         #         (self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]) ) / (
-            #         #             Suk + 1))) * \
-            #         #                  self.P[u]
-            #         #     self.Q[k] -= (1 / (Suk + 1)) * self.lRate * (1 - sigmoid(
-            #         #         (self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k])) / (
-            #         #             Suk + 1))) * self.P[u]
-            #         #     item_j = ''
-            #         #     # if len(self.NegativeSet[user])>0:
-            #         #     #     item_j = choice(self.NegativeSet[user])
-            #         #     # else:
-            #         #     item_j = choice(itemList)
-            #         #     while (self.PositiveSet[user].has_key(item_j) or self.IPositiveSet.has_key(item_j)):
-            #         #         item_j = choice(itemList)
-            #         #     j = self.data.getId(item_j,self.recType)
-            #         #     self.P[u] += self.lRate * (
-            #         #         1 - sigmoid(self.P[u].dot(self.Q[k])- self.P[u].dot(self.Q[j]))) * (
-            #         #                      self.Q[k] - self.Q[j])
-            #         #     self.Q[k] += self.lRate * (
-            #         #         1 - sigmoid(self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j]))) * \
-            #         #                  self.P[u]
-            #         #     self.Q[j] -= self.lRate * (
-            #         #         1 - sigmoid(self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j]) )) * \
-            #         #                  self.P[u]
-            #         #
-            #         #     self.P[u] -= self.lRate * self.regU * self.P[u]
-            #         #     self.Q[i] -= self.lRate * self.regI * self.Q[i]
-            #         #     self.Q[j] -= self.lRate * self.regI * self.Q[j]
-            #         #     self.Q[k] -= self.lRate * self.regI * self.Q[k]
-            #         #
-            #         #     self.loss += -log(sigmoid(
-            #         #         (self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]) ) / (Suk + 1))) \
-            #         #                  - log(
-            #         #         sigmoid(self.P[u].dot(self.Q[k])  - self.P[u].dot(self.Q[j])))
-            #         # else:
-            #
-            #
-            #         item_j = choice(itemList)
-            #         while (self.PositiveSet[user].has_key(item_j)):
-            #             item_j = choice(itemList)
-            #         j = self.data.getId(item_j,self.recType)
-            #         self.P[u] += self.lRate * (
-            #             1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))) * (
-            #                          self.Q[i] - self.Q[j])
-            #         self.Q[i] += self.lRate * (
-            #             1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))) * \
-            #                      self.P[u]
-            #         self.Q[j] -= self.lRate * (
-            #             1 - sigmoid(self.P[u].dot(self.Q[i])  - self.P[u].dot(self.Q[j]))) * \
-            #                      self.P[u]
-            #         #friend,sim = choice(self.topKSim[user])
-            #         #f_id = self.data.getId(friend,'user')
-            #         #self.P[u] += self.lRate*self.alpha*(sim-self.P[u].dot(self.G[f_id]))*self.G[f_id]
-            #         #self.G[f_id] +=self.lRate*self.alpha*((sim-self.P[u].dot(self.G[f_id]))*self.P[u]-self.regU*self.G[f_id])
-            #         self.loss += -log(
-            #             sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j])))#+self.alpha*(sim-self.P[u].dot(self.G[f_id]))**2
-            #
-            #         self.loss += -log(sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j])))
-            #
-            # # for user in self.topKSim:
-            # #     for friend in self.topKSim[user]:
-            # #         u = self.data.getId(user,'user')
-            # #         f = self.data.getId(friend[0],'user')
-            # #         self.P[u] -= self.alpha*self.lRate*(self.P[u]-self.P[f])
-            #
-            # self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()
-            # iteration += 1
-            # if self.isConverged(iteration):
-            #     break
+                self.PositiveSet[user][item['track']] = 1
 
-        userListened = defaultdict(dict)
-        for user in self.data.userRecord:
-            for item in self.data.userRecord[user]:
-                userListened[user][item[self.recType]] = 1
+            for friend,sim in self.topKSim[user]:
+                    for item in self.data.userRecord[friend]:
+                        if not self.PositiveSet[user].has_key(item['track']):
+                            if not self.IPositiveSet[user].has_key(item['track']):
+                                self.IPositiveSet[user][item['track']] = 1
 
-        print 'training...'
+        Suk = 1
+        print 'Training...'
         iteration = 0
-        itemList = self.data.name2id[self.recType].keys()
         while iteration < self.maxIter:
             self.loss = 0
-            for user in self.data.userRecord:
-                u = self.data.getId(user, 'user')
-                for item in self.data.userRecord[user]:
-                    i = self.data.getId(item[self.recType], self.recType)
-                    item_j = choice(itemList)
-                    while (userListened[user].has_key(item_j)):
+            itemList = self.data.name2id['track'].keys()
+            for user in self.PositiveSet:
+                u = self.data.getId(user,'user')
+                kItems = self.IPositiveSet[user].keys()
+                for item in self.PositiveSet[user]:
+                    i = self.data.getId(item,'track')
+                    if len(self.IPositiveSet[user]) > 0:
+                        item_k = choice(kItems)
+                        k = self.data.getId(item_k,'track')
+                        s = sigmoid(
+                            (self.P[u].dot(self.Q[i]) + self.b[i] - self.P[u].dot(self.Q[k]) - self.b[k]) / (Suk + 1))
+                        self.P[u] += 1 / (Suk + 1) * self.lRate * (1 - s) * (self.Q[i] - self.Q[k])
+                        self.Q[i] += 1 / (Suk + 1) * self.lRate * (1 - s) * self.P[u]
+                        self.Q[k] -= 1 / (Suk + 1) * self.lRate * (1 - s) * self.P[u]
+                        self.b[i] += 1 / (Suk + 1) * self.lRate * (1 - s)
+                        self.b[k] -= 1 / (Suk + 1) * self.lRate * (1 - s)
+                        item_j = ''
+                        # if len(self.NegativeSet[user])>0:
+                        #     item_j = choice(self.NegativeSet[user])
+                        # else:
                         item_j = choice(itemList)
-                    j = self.data.getId(item_j, self.recType)
-                    s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
-                    self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
-                    self.Q[i] += self.lRate * (1 - s) * self.P[u]
-                    self.Q[j] -= self.lRate * (1 - s) * self.P[u]
+                        while (self.PositiveSet[user].has_key(item_j) or self.IPositiveSet.has_key(item_j)):
+                            item_j = choice(itemList)
+                        j = self.data.getId(item_j,'track')
+                        s = sigmoid(self.P[u].dot(self.Q[k]) + self.b[k] - self.P[u].dot(self.Q[j]) - self.b[j])
+                        self.P[u] += self.lRate * (1 - s) * (self.Q[k] - self.Q[j])
+                        self.Q[k] += self.lRate * (1 - s) * self.P[u]
+                        self.Q[j] -= self.lRate * (1 - s) * self.P[u]
+                        self.b[k] += self.lRate * (1 - s)
+                        self.b[j] -= self.lRate * (1 - s)
 
-                    self.P[u] -= self.lRate * self.regU * self.P[u]
-                    self.Q[i] -= self.lRate * self.regI * self.Q[i]
-                    self.Q[j] -= self.lRate * self.regI * self.Q[j]
-                    friend,sim = choice(self.topKSim[user])
-                    f_id = self.data.getId(friend,'user')
-                    self.P[u] += self.lRate*self.alpha*(sim-self.P[u].dot(self.G[f_id]))*self.G[f_id]
-                    self.G[f_id] +=self.lRate*self.alpha*((sim-self.P[u].dot(self.G[f_id]))*self.P[u]-self.regU*self.G[f_id])
-                    self.loss += -log(s)+self.alpha*(sim-self.P[u].dot(self.G[f_id]))**2
-            self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()+self.regI * (self.G * self.G).sum()
+                        self.P[u] -= self.lRate * self.regU * self.P[u]
+                        self.Q[i] -= self.lRate * self.regI * self.Q[i]
+                        self.Q[j] -= self.lRate * self.regI * self.Q[j]
+                        self.Q[k] -= self.lRate * self.regI * self.Q[k]
+
+                        self.loss += -log(sigmoid(
+                            (self.P[u].dot(self.Q[i]) + self.b[i] - self.P[u].dot(self.Q[k]) - self.b[k]) / (Suk + 1))) \
+                                     - log(
+                            sigmoid(self.P[u].dot(self.Q[k]) + self.b[k] - self.P[u].dot(self.Q[j]) - self.b[j]))
+                    else:
+                        item_j = choice(itemList)
+                        while (self.PositiveSet[user].has_key(item_j)):
+                            item_j = choice(itemList)
+                        j = self.data.getId(item_j,'track')
+                        s = sigmoid(self.P[u].dot(self.Q[i]) + self.b[i] - self.P[u].dot(self.Q[j]) - self.b[j])
+                        self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
+                        self.Q[i] += self.lRate * (1 - s) * self.P[u]
+                        self.Q[j] -= self.lRate * (1 - s) * self.P[u]
+                        self.b[i] += self.lRate * (1 - s)
+                        self.b[j] -= self.lRate * (1 - s)
+
+                        self.loss += -log(s)
+
+            self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum() + self.b.dot(self.b)
             iteration += 1
             if self.isConverged(iteration):
                 break
+
+        # userListened = defaultdict(dict)
+        # for user in self.data.userRecord:
+        #     for item in self.data.userRecord[user]:
+        #         userListened[user][item[self.recType]] = 1
+        #
+        # print 'training...'
+        # iteration = 0
+        # itemList = self.data.name2id[self.recType].keys()
+        # while iteration < self.maxIter:
+        #     self.loss = 0
+        #     for user in self.data.userRecord:
+        #         u = self.data.getId(user, 'user')
+        #         for item in self.data.userRecord[user]:
+        #             i = self.data.getId(item[self.recType], self.recType)
+        #             item_j = choice(itemList)
+        #             while (userListened[user].has_key(item_j)):
+        #                 item_j = choice(itemList)
+        #             j = self.data.getId(item_j, self.recType)
+        #             s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
+        #             self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
+        #             self.Q[i] += self.lRate * (1 - s) * self.P[u]
+        #             self.Q[j] -= self.lRate * (1 - s) * self.P[u]
+        #
+        #             self.P[u] -= self.lRate * self.regU * self.P[u]
+        #             self.Q[i] -= self.lRate * self.regI * self.Q[i]
+        #             self.Q[j] -= self.lRate * self.regI * self.Q[j]
+        #             friend,sim = choice(self.topKSim[user])
+        #             f_id = self.data.getId(friend,'user')
+        #             self.P[u] += self.lRate*self.alpha*(sim-self.P[u].dot(self.G[f_id]))*self.G[f_id]
+        #             self.G[f_id] +=self.lRate*self.alpha*((sim-self.P[u].dot(self.G[f_id]))*self.P[u]-self.regU*self.G[f_id])
+        #             self.loss += -log(s)+self.alpha*(sim-self.P[u].dot(self.G[f_id]))**2
+        #     self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()+self.regI * (self.G * self.G).sum()
+        #     iteration += 1
+        #     if self.isConverged(iteration):
+        #         break
 
 
     def predict(self, u):
