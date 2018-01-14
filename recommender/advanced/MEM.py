@@ -88,7 +88,7 @@ class MEM(IterativeRecommender):
             for item in self.data.userRecord[user]:
                 playList.append(item['track'])
             sentences.append(playList)
-        model = w2v.Word2Vec(sentences,size=self.k,window=5,min_count=0,iter=10,sg=1)
+        model = w2v.Word2Vec(sentences,size=self.k,window=5,min_count=0,iter=10)
         for track in self.data.trackListened:
             tid = self.data.getId(track,'track')
             self.Q[tid]=model.wv[track]
@@ -113,43 +113,43 @@ class MEM(IterativeRecommender):
 
         #preference embedding
         self.R = np.zeros((self.data.getSize('user'), self.k))
-        for user in self.data.userRecord['user']:
+        for user in self.data.userRecord:
             uid = self.data.getId(user,'user')
             global_uv = np.zeros(self.k)
             local_uv = np.zeros(self.k)
             for event in self.data.userRecord[user]:
                 tid = self.data.getId(event['track'],'track')
                 global_uv +=self.Q[tid]
-            self.P[uid] = global_uv/len(self.data.userRecord['user'])
+            self.P[uid] = global_uv/len(self.data.userRecord[user])
             recent = max(0,len(self.data.userRecord[user])-20)
-            for event in self.data.userRecord[user][recent:]:
+            for event in self.data.userRecord[user]:
                 tid = self.data.getId(event['track'],'track')
                 local_uv +=self.Q[tid]
-            self.R[uid] = local_uv/recent
+            self.R[uid] = local_uv/len(self.data.userRecord[user])
 
-        for t1 in self.data.trackListened:
-            if len(self.data.trackListened[t1])<200:
-                continue
-            xiangsi=''
-            m = 0
-            s = ''
-            n =''
-            mi = 10000
-            s1 = set(self.data.trackListened[t1].keys())
-            for t2 in self.data.trackListened:
-                if t1!=t2:
-                    s2 = set(self.data.trackListened[t2].keys())
-                    l = len(s1.intersection(s2))
-                    if l>m and l>50:
-                        m = l
-                        s = t2
-                    if l<mi:
-                        mi = l
-                        n = t2
-
-            print t1,s,cosine(self.Q[self.data.getId(t1,'track')],self.Q[self.data.getId(s,'track')]),m
-            print t1, n, cosine(self.Q[self.data.getId(t1, 'track')], self.Q[self.data.getId(n, 'track')]),mi
-            break
+        # for t1 in self.data.trackListened:
+        #     if len(self.data.trackListened[t1])<200:
+        #         continue
+        #     xiangsi=''
+        #     m = 0
+        #     s = ''
+        #     n =''
+        #     mi = 10000
+        #     s1 = set(self.data.trackListened[t1].keys())
+        #     for t2 in self.data.trackListened:
+        #         if t1!=t2:
+        #             s2 = set(self.data.trackListened[t2].keys())
+        #             l = len(s1.intersection(s2))
+        #             if l>m and l>50:
+        #                 m = l
+        #                 s = t2
+        #             if l<mi:
+        #                 mi = l
+        #                 n = t2
+        #
+        #     print t1,s,cosine(self.Q[self.data.getId(t1,'track')],self.Q[self.data.getId(s,'track')]),m
+        #     print t1, n, cosine(self.Q[self.data.getId(t1, 'track')], self.Q[self.data.getId(n, 'track')]),mi
+        #     break
 
 
 

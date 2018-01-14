@@ -19,7 +19,7 @@ if __name__ == '__main__':
     print 'Hybrid Recommenders:\n'
 
     print 'Advanced Recommenders:'
-    print 'a1. MEM   a2. SocialMR'
+    print 'a1. MEM   a2. SocialMR   a3. HME'
 
 
 
@@ -51,6 +51,9 @@ if __name__ == '__main__':
 
     elif order == 'a2':
         conf = Config('./config/SocialMR.conf')
+
+    elif order == 'a3':
+        conf = Config('./config/HME.conf')
 
     else:
         print 'Error num!'

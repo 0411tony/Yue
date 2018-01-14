@@ -257,7 +257,7 @@ class SocialMR(IterativeRecommender):
                     if len(self.IPositiveSet[user]) > 0:
                         item_k = choice(kItems)
                         k = self.data.getId(item_k,self.recType)
-                        Suk = 1
+                        Suk = 0.1
                         self.P[u] += (1 / (Suk + 1)) * self.lRate * (1 - sigmoid(
                             (self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]) ) / (Suk + 1))) \
                                      * (self.Q[i] - self.Q[k])
