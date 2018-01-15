@@ -53,7 +53,7 @@ class WRMF(IterativeRecommender):
                 Temp = ((self.X.T * C_i).dot(self.X) + self.regU * np.eye(self.k)) ** -1
                 self.Y[iid] = (Temp.dot(self.X.T) * C_i).dot(P_i)
 
-            self.loss += self.regU * (self.X * self.X).sum() + self.regU * (self.Y * self.Y).sum()
+            #self.loss += self.regU * (self.X * self.X).sum() + self.regU * (self.Y * self.Y).sum()
             iteration += 1
             if self.isConverged(iteration):
                 break

@@ -79,7 +79,7 @@ class Record(object):
                 if key == 'album' and entry.has_key('track'):
                         self.album2Track[entry[key]][entry['track']] = 1
                 if key == 'artist' and entry.has_key('track'):
-                    self.artist2Track[entry[key]][entry['artist']] = 1
+                    self.artist2Track[entry[key]][entry['track']] = 1
 
 
         recType = self.evalConfig['-target']
