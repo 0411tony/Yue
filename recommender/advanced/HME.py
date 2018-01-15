@@ -93,7 +93,7 @@ class HME(IterativeRecommender):
                     self.album2user[album] += [user] * self.data.listened['album'][album][user]
 
         for artist in self.data.artist2Track:
-            self.artist2track = self.data.artist2Track[artist].keys()
+            self.artist2track[artist] = self.data.artist2Track[artist].keys()
             for key in self.data.artist2Track[artist]:
                 self.track2artst[key] = artist
         if self.data.columns.has_key('album'):

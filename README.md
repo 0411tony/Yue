@@ -146,7 +146,7 @@
   </tr>  
 
   <tr>
-    <td scope="row">MEM</td>
+    <td scope="row">MEM(implementing...)</td>
     <td>Wang et al., Learning music embedding with metadata for context aware recommendation, ICMR 2016.
      </td>
   </tr>  

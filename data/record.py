@@ -75,7 +75,7 @@ class Record(object):
                         else:
                             self.listened['track'][entry['track']][entry[key]] += 1
                 if key == 'artist' and entry.has_key('album'):
-                        self.artist2Track[entry[key]][entry['album']] = 1
+                        self.artist2Album[entry[key]][entry['album']] = 1
                 if key == 'album' and entry.has_key('track'):
                         self.album2Track[entry[key]][entry['track']] = 1
                 if key == 'artist' and entry.has_key('track'):

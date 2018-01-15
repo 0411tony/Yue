@@ -26,8 +26,6 @@ class WRMF(IterativeRecommender):
         iteration = 0
         while iteration < self.maxIter:
             self.loss = 0
-
-
             for user in self.data.name2id['user']:
                 C_u = np.ones(self.data.getSize(self.recType))
                 P_u = np.zeros(self.data.getSize(self.recType))
@@ -35,12 +33,12 @@ class WRMF(IterativeRecommender):
                 for item in self.data.userRecord[user]:
                     iid = self.data.getId(item[self.recType],self.recType)
                     r_ui = self.data.listened[self.recType][item[self.recType]][user]
-                    C_u[iid]+=40*r_ui
+                    C_u[iid]+=log(1+r_ui)
                     P_u[iid]=1
-                    self.loss+=C_u[iid]*(1-self.X[uid].dot(self.Y[iid]))
+                    self.loss+=C_u[iid]*(1-self.X[uid].dot(self.Y[iid]))**2
 
-                LEFT = ((self.Y.T*C_u).dot(self.Y)+self.regU*np.eye(self.k))**-1
-                self.X[uid] = (LEFT.dot(self.Y.T)*C_u).dot(P_u)
+                Temp = ((self.Y.T*C_u).dot(self.Y)+self.regU*np.eye(self.k))**-1
+                self.X[uid] = (Temp.dot(self.Y.T)*C_u).dot(P_u)
 
 
             for item in self.data.name2id[self.recType]:
@@ -50,12 +48,10 @@ class WRMF(IterativeRecommender):
                 for user in self.data.listened[self.recType][item]:
                     uid = self.data.getId(user, 'user')
                     r_ui = self.data.listened[self.recType][item][user]
-                    C_i[uid] += 40 * r_ui
+                    C_i[uid] += log(r_ui+1)
                     P_i[uid] = 1
-
-                LEFT = ((self.X.T * C_i).dot(self.X) + self.regU * np.eye(
-                           self.k)) ** -1
-                self.Y[iid] = (LEFT.dot(self.X.T) * C_i).dot(P_i)
+                Temp = ((self.X.T * C_i).dot(self.X) + self.regU * np.eye(self.k)) ** -1
+                self.Y[iid] = (Temp.dot(self.X.T) * C_i).dot(P_i)
 
             self.loss += self.regU * (self.X * self.X).sum() + self.regU * (self.Y * self.Y).sum()
             iteration += 1
