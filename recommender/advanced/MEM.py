@@ -89,7 +89,7 @@ class MEM(IterativeRecommender):
                 playList.append(item['track'])
             sentences.append(playList)
         model = w2v.Word2Vec(sentences,size=self.k,window=5,min_count=0,iter=10)
-        for track in self.data.trackListened:
+        for track in self.data.listened['track']:
             tid = self.data.getId(track,'track')
             self.Q[tid]=model.wv[track]
 

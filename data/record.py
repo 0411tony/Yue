@@ -13,9 +13,10 @@ class Record(object):
         self.evalConfig = LineConfig(config['evaluation.setup'])
         self.name2id = defaultdict(dict)
         self.id2name = defaultdict(dict)
-        self.artistListened = defaultdict(dict) #key:aritst id, value:{user id1:count, user id2:count, ...}
-        self.albumListened = defaultdict(dict) #key:album id, value:{user id1:count, user id2:count, ...}
-        self.trackListened = defaultdict(dict) #key:track id, value:{user id1:count, user id2:count, ...}
+        self.listened = {}
+        self.listened['artist']=defaultdict(dict)
+        self.listened['track']=defaultdict(dict)
+        self.listened['album']=defaultdict(dict)
         self.artist2Album = defaultdict(dict) #key:artist id, value:{album id1:1, album id2:1 ...}
         self.album2Track = defaultdict(dict) #
         self.artist2Track = defaultdict(dict) #
@@ -59,20 +60,20 @@ class Record(object):
                 if key=='user':
                     self.userRecord[entry['user']].append(entry)
                     if entry.has_key('artist'):
-                        if not self.artistListened[entry['artist']].has_key(entry[key]):
-                            self.artistListened[entry['artist']][entry[key]] = 0
+                        if not self.listened['artist'][entry['artist']].has_key(entry[key]):
+                            self.listened['artist'][entry['artist']][entry[key]] = 0
                         else:
-                            self.artistListened[entry['artist']][entry[key]] += 1
+                            self.listened['artist'][entry['artist']][entry[key]] += 1
                     if  entry.has_key('album'):
-                        if not self.albumListened[entry['album']].has_key(entry[key]):
-                            self.albumListened[entry['album']][entry[key]] = 0
+                        if not self.listened['album'][entry['album']].has_key(entry[key]):
+                            self.listened['album'][entry['album']][entry[key]] = 0
                         else:
-                            self.albumListened[entry['album']][entry[key]] += 1
+                            self.listened['album'][entry['album']][entry[key]] += 1
                     if entry.has_key('track'):
-                        if not self.trackListened[entry['track']].has_key(entry[key]):
-                            self.trackListened[entry['track']][entry[key]] = 0
+                        if not self.listened['track'][entry['track']].has_key(entry[key]):
+                            self.listened['track'][entry['track']][entry[key]] = 0
                         else:
-                            self.trackListened[entry['track']][entry[key]] += 1
+                            self.listened['track'][entry['track']][entry[key]] += 1
                 if key == 'artist' and entry.has_key('album'):
                         self.artist2Track[entry[key]][entry['album']] = 1
                 if key == 'album' and entry.has_key('track'):

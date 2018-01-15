@@ -14,13 +14,7 @@ class Rand(Recommender):
     def predict(self, u):
         'invoked to rank all the items for the user'
         self.candidates = []
-        if self.recType == 'track':
-            candidates = self.data.trackListened.keys()
-        elif self.recType == 'artist':
-            candidates = self.data.artistListened.keys()
-        else:
-            candidates = self.data.albumListened.keys()
-
+        candidates = self.data.listened[self.recType].keys()
         shuffle(candidates)
         return self.candidates
 

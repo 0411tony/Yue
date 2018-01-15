@@ -79,18 +79,18 @@ class HME(IterativeRecommender):
                 if self.data.columns.has_key('album'):
                     self.user2album[user].append(item['album'])
 
-        for artist in self.data.artistListened:
-            for user in self.data.artistListened[artist]:
-                self.artist2user[artist] += [user] * self.data.artistListened[artist][user]
+        for artist in self.data.listened['artist']:
+            for user in self.data.listened['artist'][artist]:
+                self.artist2user[artist] += [user] * self.data.listened['artist'][artist][user]
 
-        for track in self.data.trackListened:
-            for user in self.data.trackListened[track]:
-                self.track2user[track] += [user] * self.data.trackListened[track][user]
+        for track in self.data.listened['track']:
+            for user in self.data.listened['track'][track]:
+                self.track2user[track] += [user] * self.data.listened['track'][track][user]
 
         if self.data.columns.has_key('album'):
-            for album in self.data.albumListened:
-                for user in self.data.albumListened[album]:
-                    self.album2user[album] += [user] * self.data.albumListened[album][user]
+            for album in self.data.listened['album']:
+                for user in self.data.listened['album'][album]:
+                    self.album2user[album] += [user] * self.data.listened['album'][album][user]
 
         for artist in self.data.artist2Track:
             self.artist2track = self.data.artist2Track[artist].keys()
@@ -258,7 +258,7 @@ class HME(IterativeRecommender):
         #         playList.append(item['track'])
         #     self.walks.append(playList)
         g_model = w2v.Word2Vec(self.walks, size=self.k, window=self.winSize, min_count=0, iter=self.epoch)
-        # for track in self.data.trackListened:
+        # for track in self.data.listened['track']:
         #     tid = self.data.getId(track, 'track')
         #     try:
         #         self.Q[tid] = model.wv[track]

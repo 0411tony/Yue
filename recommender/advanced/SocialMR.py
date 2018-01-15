@@ -69,18 +69,18 @@ class SocialMR(IterativeRecommender):
                 if self.data.columns.has_key('album'):
                     self.user2album[user].append(item['album'])
         
-        for artist in self.data.artistListened:
-            for user in self.data.artistListened[artist]:
-                self.artist2user[artist]+=[user]*self.data.artistListened[artist][user]
+        for artist in self.data.listened['artist']:
+            for user in self.data.listened['artist'][artist]:
+                self.artist2user[artist]+=[user]*self.data.listened['artist'][artist][user]
         
         for track in self.data.trackListened:
             for user in self.data.trackListened[track]:
                 self.track2user[track]+=[user]*self.data.trackListened[track][user]
 
         if self.data.columns.has_key('album'):
-            for album in self.data.albumListened:
-                for user in self.data.albumListened[album]:
-                    self.album2user[album]+=[user]*self.data.albumListened[album][user]
+            for album in self.data.listened['album']:
+                for user in self.data.listened['album'][album]:
+                    self.album2user[album]+=[user]*self.data.listened['album'][album][user]
 
         for artist in self.data.artist2Track:
             self.artist2track=self.data.artist2Track[artist].keys()

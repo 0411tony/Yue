@@ -34,7 +34,7 @@ class WRMF(IterativeRecommender):
                 uid = self.data.getId(user,'user')
                 for item in self.data.userRecord[user]:
                     iid = self.data.getId(item[self.recType],self.recType)
-                    r_ui = self.data.trackListened[item[self.recType]][user]
+                    r_ui = self.data.listened[self.recType][item[self.recType]][user]
                     C_u[iid]+=40*r_ui
                     P_u[iid]=1
                     self.loss+=C_u[iid]*(1-self.X[uid].dot(self.Y[iid]))
@@ -47,9 +47,9 @@ class WRMF(IterativeRecommender):
                 C_i = np.ones(self.data.getSize('user'))
                 P_i = np.zeros(self.data.getSize('user'))
                 iid = self.data.getId(item, self.recType)
-                for user in self.data.trackListened[item]:
+                for user in self.data.listened[self.recType][item]:
                     uid = self.data.getId(user, 'user')
-                    r_ui = self.data.trackListened[item][user]
+                    r_ui = self.data.listened[self.recType][item][user]
                     C_i[uid] += 40 * r_ui
                     P_i[uid] = 1
 
