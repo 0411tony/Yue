@@ -1,10 +1,11 @@
 <img src=http://chuantu.biz/t6/187/1514299017x-1404764539.png />
 
-**Founder**: [@Coder-Yu ](https://github.com/Coder-Yu)<br>
+**Founder**: [@Coder-Yu ](https://github.com/Coder-Yu)</br>
+<b>More implementations of generic recommenders can be found in [RecQ](https://github.com/Coder-Yu)</b></br>
 
 <h2>Introduction</h2>
 
-**Yue** is a Python library for Music Recommendation (Python 2.7.x). It implements a suit of state-of-the-art recommendations. To run Yue easily (no need to setup dendencies used in RecQ one by one), the leading open data science platform  [**Anaconda**](https://www.continuum.io/downloads) is strongly recommended. It integrates Python interpreter, common scientific computing libraries (such as Numpy, Pandas, and Matplotlib), and package manager, all of them make it a perfect tool for data science researcher.
+**Yue** is a Python library for Music Recommendation (Python 2.7.x). It implements a suit of state-of-the-art music recommenders. To run Yue easily (no need to setup dendencies used in RecQ one by one), the leading open data science platform  [**Anaconda**](https://www.continuum.io/downloads) is strongly recommended. It integrates Python interpreter, common scientific computing libraries (such as Numpy, Pandas, and Matplotlib), and package manager, all of them make it a perfect tool for data science researcher.
 
 
 <h2>Features</h2>
