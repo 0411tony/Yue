@@ -18,10 +18,13 @@ class WRMF(IterativeRecommender):
         self.X=self.P
         self.Y=self.Q
 
-
-
     def buildModel(self):
-
+        userListen = defaultdict(dict)
+        for user in self.data.userRecord:
+            for item in self.data.userRecord[user]:
+                if not userListen[user].has_key(item[self.recType]):
+                    userListen[user][item[self.recType]] = 0
+                userListen[user][item[self.recType]] += 1
         print 'training...'
         iteration = 0
         while iteration < self.maxIter:
@@ -30,12 +33,12 @@ class WRMF(IterativeRecommender):
                 C_u = np.ones(self.data.getSize(self.recType))
                 P_u = np.zeros(self.data.getSize(self.recType))
                 uid = self.data.getId(user,'user')
-                for item in self.data.userRecord[user]:
-                    iid = self.data.getId(item[self.recType],self.recType)
-                    r_ui = self.data.listened[self.recType][item[self.recType]][user]
+                for item in userListen[user]:
+                    iid = self.data.getId(item,self.recType)
+                    r_ui = userListen[user][item]
                     C_u[iid]+=log(1+r_ui)
                     P_u[iid]=1
-                    self.loss+=C_u[iid]*(1-self.X[uid].dot(self.Y[iid]))**2
+                    self.loss+=C_u[iid]*(P_u[iid]-self.X[uid].dot(self.Y[iid]))**2
 
                 Temp = ((self.Y.T*C_u).dot(self.Y)+self.regU*np.eye(self.k))**-1
                 self.X[uid] = (Temp.dot(self.Y.T)*C_u).dot(P_u)

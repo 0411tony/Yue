@@ -20,10 +20,10 @@ class BPR(IterativeRecommender):
 
 
     def buildModel(self):
-        userListened = defaultdict(dict)
+        userListen = defaultdict(dict)
         for user in self.data.userRecord:
             for item in self.data.userRecord[user]:
-                userListened[user][item[self.recType]] = 1
+                userListen[user][item[self.recType]] = 1
 
         print 'training...'
         iteration = 0
@@ -35,7 +35,7 @@ class BPR(IterativeRecommender):
                 for item in self.data.userRecord[user]:
                     i = self.data.getId(item[self.recType],self.recType)
                     item_j = choice(itemList)
-                    while (userListened[user].has_key(item_j)):
+                    while (userListen[user].has_key(item_j)):
                         item_j = choice(itemList)
                     j = self.data.getId(item_j,self.recType)
                     s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
