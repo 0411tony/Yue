@@ -18,3 +18,4 @@ class SparseMatrix(object):
     def anyone(self):
         if not self.contructed:
             self.rows = self.matrix.keys()
+            ## to be continued
