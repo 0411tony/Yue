@@ -69,7 +69,7 @@ class Recommender(object):
         threshold = 0
         top = self.ranking['-topN'].split(',')
         top = [int(num) for num in top]
-        N = max(top)
+        N = int(top[-1])
         if N > 100 or N < 0:
             print 'N can not be larger than 100! It has been reassigned with 10'
             N = 10
@@ -86,11 +86,14 @@ class Recommender(object):
                 predictedItems = self.predict(user)
             else:
                 predictedItems = ['0']*N
-
+            # predicted = {}
+            # for k,item in enumerate(predictedItems):
+            #     predicted[item] = k
             # for item in self.data.userRecord[user]:
-            #     if item[self.recType] in predictedItems:
-            #         predictedItems.remove(item[self.recType])
-
+            #     if predicted.has_key(item[self.recType]):
+            #         del predicted[item[self.recType]]
+            # predicted = sorted(predicted.iteritems(),key=lambda d:d[1])
+            # predictedItems = [item[0] for item in predicted]
             recList[user] = predictedItems[:N]
 
             if i % 100 == 0:

@@ -43,7 +43,7 @@ class HME(IterativeRecommender):
         print 'Building weighted user-friend network...'
         # filter isolated nodes and low ratings
         # Definition of Meta-Path
-
+        self.I = np.random.rand(self.data.getSize('track'),self.k)/10 #item characteristics
         self.G = np.random.rand(self.data.getSize('user'), self.k) / 10 #global user preference
         self.R = np.random.rand(self.data.getSize('user'), self.k) / 10 #recent user preference
 
@@ -268,8 +268,16 @@ class HME(IterativeRecommender):
         #self.R = np.zeros((self.data.getSize('user'), self.k))
         for user in self.data.userRecord:
             uid = self.data.getId(user,'user')
-            self.G[uid] = g_model.wv[user]
-
+            try:
+                self.G[uid] = g_model.wv[user]
+            except KeyError:
+                pass
+        for item in self.data.name2id['track']:
+            iid = self.data.getId(item,'track')
+            try:
+                self.I[iid] = g_model.wv[item]
+            except KeyError:
+                pass
         r_model = w2v.Word2Vec(self.r_walks, size=self.k, window=self.winSize, min_count=0, iter=self.epoch)
         for user in self.data.userRecord:
             uid = self.data.getId(user,'user')
@@ -302,11 +310,15 @@ class HME(IterativeRecommender):
                     self.Q[j] -= self.lRate * (1 - s) * self.P[u]
                     self.P[u] -= self.lRate * self.alpha*(self.beta*(self.P[u]-self.G[u])+(1-self.beta)*(self.P[u]-self.R[u]))
                     self.P[u] -= self.lRate * self.regU * self.P[u]
+                    #self.Q[i] -= self.lRate * self.alpha*(self.Q[i]-self.I[i])
                     self.Q[i] -= self.lRate * self.regI * self.Q[i]
                     self.Q[j] -= self.lRate * self.regI * self.Q[j]
+                    #self.Q[j] -= self.lRate * self.alpha * (self.Q[j] - self.I[j])
                     self.loss += -log(s)
             self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()\
-                         +self.alpha*((1-self.beta)*((self.P-self.R)*(self.P-self.R)).sum()+self.beta*((self.P-self.G)*(self.P-self.G)).sum())
+                         +self.alpha*((1-self.beta)*((self.P-self.R)*(self.P-self.R)).sum()+
+                         self.beta*((self.P-self.G)*(self.P-self.G)).sum())#+\
+                         #self.alpha*((self.Q-self.I)*(self.Q-self.I)).sum()
             iteration += 1
             if self.isConverged(iteration):
                 break

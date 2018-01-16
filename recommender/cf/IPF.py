@@ -27,16 +27,10 @@ class IPF(Recommender):
             for item in self.sessionNodes[user]:
                 item2session[item].append(user)
         item2user = {}
-        if self.recType=='track':
-            for item in self.data.trackListened:
-                item2user[item]=self.data.trackListened[item].keys()
 
-        elif self.recType== 'artist':
-            for item in self.data.artistListened:
-                item2user[item]=self.data.artistListened[item].keys()
-        else:
-            for item in self.data.albumListened:
-                item2user[item]=self.data.albumListened[item].keys()
+        item2user[item]=self.data.listened[self.recType][item].keys()
+
+
         self.STG['item2user'] = item2user
         self.STG['item2session'] = item2session
         self.path = [['user','item','user','item'],
@@ -67,7 +61,7 @@ class IPF(Recommender):
         #I think the pseudo code in the paper sucks, so I re-implement the algorithm based on my design
         rank = {}
         visited = {}
-        for p in self.path[2:]:
+        for p in self.path:
             queue = []
             queue.append((p[0],user))
             distance = {}

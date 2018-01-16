@@ -9,6 +9,15 @@ from tool.config import LineConfig
 import gensim.models.word2vec as w2v
 import scipy.spatial.distance as distance
 
+
+##########################################################
+#
+#
+#              UNFINISHED！！！！！！！
+#
+#
+#
+##########################################################
 class MEM(IterativeRecommender):
     # BPR：Bayesian Personalized Ranking from Implicit Feedback
     # Steffen Rendle,Christoph Freudenthaler,Zeno Gantner and Lars Schmidt-Thieme
