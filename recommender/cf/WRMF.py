@@ -29,7 +29,8 @@ class WRMF(IterativeRecommender):
         iteration = 0
         while iteration < self.maxIter:
             self.loss = 0
-
+            YtY = self.Y.T.dot(self.Y)
+            I = np.ones(self.data.getSize(self.recType))
             for user in self.data.name2id['user']:
                 C_u = np.ones(self.data.getSize(self.recType))
                 P_u = np.zeros(self.data.getSize(self.recType))
@@ -42,10 +43,11 @@ class WRMF(IterativeRecommender):
                     error = (P_u[iid]-self.X[uid].dot(self.Y[iid]))
                     self.loss+=C_u[iid]*pow(error,2)
 
-                Temp = ((self.Y.T*C_u).dot(self.Y)+self.regU*np.eye(self.k))**-1
+                Temp = (YtY+(self.Y.T*(C_u-I)).dot(self.Y)+self.regU*np.eye(self.k))**-1
                 self.X[uid] = (Temp.dot(self.Y.T)*C_u).dot(P_u)
 
-
+            XtX = self.X.T.dot(self.X)
+            I = np.ones(self.data.getSize('user'))
             for item in self.data.name2id[self.recType]:
                 C_i = np.ones(self.data.getSize('user'))
                 P_i = np.zeros(self.data.getSize('user'))
@@ -55,13 +57,14 @@ class WRMF(IterativeRecommender):
                     r_ui = self.data.listened[self.recType][item][user]
                     C_i[uid] += log(r_ui/0.01+1)
                     P_i[uid] = 1
-                Temp = ((self.X.T*C_i).dot(self.X)+self.regU*np.eye(self.k))**-1
+                Temp = (XtX+(self.X.T*(C_i-I)).dot(self.X)+self.regU*np.eye(self.k))**-1
                 self.Y[iid] = (Temp.dot(self.X.T)*C_i).dot(P_i)
 
             #self.loss += (self.X * self.X).sum() + (self.Y * self.Y).sum()
             iteration += 1
-            if self.isConverged(iteration):
-                break
+            print 'iteration:',iteration
+            # if self.isConverged(iteration):
+            #     break
 
 
     def predict(self, u):
