@@ -210,7 +210,18 @@
     <td>N/A</td>
     <td>N/A</td>
     <td>N/A</td>
-   </tr>  
+   </tr> 
+    <tr>
+    <td><a href="http://files.grouplens.org/datasets/hetrec2011/hetrec2011-lastfm-2k.zip" target="_blank"><b>LastFM</b></a> [3]</td>
+    <td>1,892</td>
+    <td>N/A</td>
+    <td>17,632</td>
+    <td>N/A</td>
+    <td>92,834</td>
+    <td width="4%">Yes</td>
+    <td width="5%">N/A</td>
+    <td>N/A</td>
+    </tr> 
   </table>
 </div>
 
