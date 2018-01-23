@@ -18,9 +18,9 @@
 
 <h2>How to Run it</h2>
 <ul>
-<li>1. Download the dataset. (links can be found below)
-<li>1.Configure the **xx.conf** file in the directory named config. (xx is the name of the algorithm you want to run)</li>
-<li>2.Run the **main.py** in the project, and then input following the prompt.</li>
+<li>1. Download the dataset. (links can be found at the end)
+<li>1. Configure the **xx.conf** file in the directory named config. (xx is the name of the algorithm you want to run)</li>
+<li>2. Run the **main.py** in the project, and then input following the prompt.</li>
 </ul>
 <h2>How to Configure it</h2>
 <h3>Essential Options</h3>
