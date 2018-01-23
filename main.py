@@ -9,7 +9,7 @@ if __name__ == '__main__':
     print '   Yue: Library for Music Recommendation.   '
     print '='*80
     print 'CF-based Recommenders:'
-    print '1. BPR   2. FISM   3. WRMF'
+    print '1. BPR   2. FISM   3. WRMF   4. IPF'
 
 
     print 'Content-based Recommenders:\n'
