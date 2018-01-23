@@ -38,7 +38,7 @@ class WRMF(IterativeRecommender):
                 for item in userListen[user]:
                     iid = self.data.getId(item,self.recType)
                     r_ui = userListen[user][item]
-                    C_u[iid]+=log(1+r_ui/0.01)
+                    C_u[iid]+=40*r_ui
                     P_u[iid]=1
                     error = (P_u[iid]-self.X[uid].dot(self.Y[iid]))
                     self.loss+=C_u[iid]*pow(error,2)
@@ -55,7 +55,7 @@ class WRMF(IterativeRecommender):
                 for user in self.data.listened[self.recType][item]:
                     uid = self.data.getId(user, 'user')
                     r_ui = self.data.listened[self.recType][item][user]
-                    C_i[uid] += log(r_ui/0.01+1)
+                    C_i[uid] += 40*r_ui
                     P_i[uid] = 1
                 Temp = (XtX+(self.X.T*(C_i-I)).dot(self.X)+self.regU*np.eye(self.k))**-1
                 self.Y[iid] = (Temp.dot(self.X.T)*C_i).dot(P_i)

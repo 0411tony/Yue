@@ -98,11 +98,11 @@ class IterativeRecommender(Recommender):
 
                 itemSet[self.data.id2name[self.recType][id]] = score
 
-            # for item in self.data.userRecord[user]:
-            #     try:
-            #         del itemSet[item[self.recType]]
-            #     except KeyError:
-            #         pass
+            for item in self.data.userRecord[user]:
+                try:
+                    del itemSet[item[self.recType]]
+                except KeyError:
+                    pass
             Nrecommendations = []
             for item in itemSet:
                 if len(Nrecommendations) < N:

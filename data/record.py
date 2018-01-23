@@ -92,6 +92,15 @@ class Record(object):
                 if key=='user':
                     if entry.has_key(recType):
                         self.testSet[entry['user']][entry[recType]]=1
+        #remove items appearing in the training set from the test set
+        for item in self.listened[recType]:
+            for user in self.listened[recType][item]:
+                try:
+                    del self.testSet[user][item]
+                except KeyError:
+                    pass
+                if self.testSet.has_key(user) and len(self.testSet[user])==0:
+                    del self.testSet[user]
 
 
     def printTrainingSize(self):
