@@ -147,7 +147,7 @@ class IterativeRecommender(Recommender):
                 print self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount)
             for item in recList[user]:
                 line += item
-                if self.data.testSet[user].has_key(item[0]):
+                if self.data.testSet[user].has_key(item):
                     line += '*'
 
             line += '\n'

@@ -40,8 +40,8 @@ if __name__ == '__main__':
     elif order=='3':
         conf = Config('./config/WRMF.conf')
 
-    # elif order=='4':
-    #     conf = Config('./config/IPF.conf')
+    elif order=='4':
+        conf = Config('./config/IPF.conf')
 
     elif order == 'b1':
         conf = Config('./config/MostPop.conf')

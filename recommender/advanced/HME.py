@@ -257,7 +257,8 @@ class HME(IterativeRecommender):
         #     for item in self.data.userRecord[user]:
         #         playList.append(item['track'])
         #     self.walks.append(playList)
-        g_model = w2v.Word2Vec(self.walks, size=self.k, window=self.winSize, min_count=0, iter=self.epoch)
+        g_model = w2v.Word2Vec()
+        #g_model = w2v.Word2Vec(self.walks, size=self.k, window=self.winSize, min_count=0, iter=self.epoch)
         # for track in self.data.listened['track']:
         #     tid = self.data.getId(track, 'track')
         #     try:

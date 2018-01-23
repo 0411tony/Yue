@@ -21,13 +21,18 @@ class Recommender(object):
         if LineConfig(self.config['evaluation.setup']).contains('-cold'):
             #evaluation on cold-start users
             threshold = int(LineConfig(self.config['evaluation.setup'])['-cold'])
-            removedUser = {}
+            removedUser = []
             for user in self.data.testSet:
                 if self.data.userRecord.has_key(user) and len(self.data.userRecord[user])>threshold:
-                    removedUser[user]=1
+                    removedUser.append(user)
             for user in removedUser:
                 del self.data.testSet[user]
 
+        if LineConfig(self.config['evaluation.setup']).contains('-sample'):
+            userList = self.data.testSet.keys()
+            removedUser=userList[:int(len(userList)*0.9)]
+            for user in removedUser:
+                del self.data.testSet[user]
 
     def readConfiguration(self):
         self.algorName = self.config['recommender']
@@ -86,20 +91,20 @@ class Recommender(object):
                 predictedItems = self.predict(user)
             else:
                 predictedItems = ['0']*N
-            # predicted = {}
-            # for k,item in enumerate(predictedItems):
-            #     predicted[item] = k
-            # for item in self.data.userRecord[user]:
-            #     if predicted.has_key(item[self.recType]):
-            #         del predicted[item[self.recType]]
-            # predicted = sorted(predicted.iteritems(),key=lambda d:d[1])
-            # predictedItems = [item[0] for item in predicted]
+            predicted = {}
+            for k,item in enumerate(predictedItems):
+                predicted[item] = k
+            for item in self.data.userRecord[user]:
+                if predicted.has_key(item[self.recType]):
+                    del predicted[item[self.recType]]
+            predicted = sorted(predicted.iteritems(),key=lambda d:d[1])
+            predictedItems = [item[0] for item in predicted]
             recList[user] = predictedItems[:N]
 
             if i % 100 == 0:
                 print self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount)
             for item in recList[user]:
-                if self.data.testSet[user].has_key(item[0]):
+                if self.data.testSet[user].has_key(item):
                     line += '*'
                 line += item + ','
 
