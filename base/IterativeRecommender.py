@@ -56,7 +56,7 @@ class IterativeRecommender(Recommender):
 
 
     def predict(self,u):
-        return [self.data.globalMean] * len(self.data.item)
+        return self.Q.dot(self.P[u])
 
     def isConverged(self,iter):
         from math import isnan
