@@ -56,6 +56,7 @@ class IterativeRecommender(Recommender):
 
 
     def predict(self,u):
+        u = self.data.getId(u, 'user')
         return self.Q.dot(self.P[u])
 
     def isConverged(self,iter):

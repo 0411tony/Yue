@@ -184,4 +184,5 @@ class CUNE(IterativeRecommender):
 
     def predict(self, u):
         'invoked to rank all the items for the user'
+        u = self.data.getId(u, 'user')
         return self.Q.dot(self.P[u])
