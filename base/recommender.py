@@ -30,7 +30,7 @@ class Recommender(object):
 
         if LineConfig(self.config['evaluation.setup']).contains('-sample'):
             userList = self.data.testSet.keys()
-            removedUser=userList[:int(len(userList)*0.9)]
+            removedUser=userList[:int(len(userList)*0.8)]
             for user in removedUser:
                 del self.data.testSet[user]
 
