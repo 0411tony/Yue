@@ -15,8 +15,8 @@ class WRMF(IterativeRecommender):
 
     def initModel(self):
         super(WRMF, self).initModel()
-        self.X=self.P
-        self.Y=self.Q
+        self.X=self.P*10
+        self.Y=self.Q*10
 
     def buildModel(self):
         userListen = defaultdict(dict)
@@ -32,37 +32,38 @@ class WRMF(IterativeRecommender):
             YtY = self.Y.T.dot(self.Y)
             I = np.ones(self.data.getSize(self.recType))
             for user in self.data.name2id['user']:
-                C_u = np.ones(self.data.getSize(self.recType))
+                #C_u = np.eye(self.data.getSize(self.recType))
                 P_u = np.zeros(self.data.getSize(self.recType))
                 uid = self.data.getId(user,'user')
                 for item in userListen[user]:
                     iid = self.data.getId(item,self.recType)
                     r_ui = userListen[user][item]
-                    C_u[iid]+=40*r_ui
+                    #C_u[iid]+=1*r_ui
                     P_u[iid]=1
                     error = (P_u[iid]-self.X[uid].dot(self.Y[iid]))
-                    self.loss+=C_u[iid]*pow(error,2)
+                    self.loss+=pow(error,2)
 
-                Temp = (YtY+(self.Y.T*(C_u-I)).dot(self.Y)+self.regU*np.eye(self.k))**-1
-                self.X[uid] = (Temp.dot(self.Y.T)*C_u).dot(P_u)
+                Temp = (YtY+self.Y.T.dot(self.Y)+self.regU*np.eye(self.k))
+                self.X[uid] = np.dot(np.linalg.inv(Temp),self.Y.T.dot(P_u))
+
 
             XtX = self.X.T.dot(self.X)
             I = np.ones(self.data.getSize('user'))
             for item in self.data.name2id[self.recType]:
-                C_i = np.ones(self.data.getSize('user'))
+                #C_i = np.eye(self.data.getSize('user'))
                 P_i = np.zeros(self.data.getSize('user'))
                 iid = self.data.getId(item, self.recType)
                 for user in self.data.listened[self.recType][item]:
                     uid = self.data.getId(user, 'user')
                     r_ui = self.data.listened[self.recType][item][user]
-                    C_i[uid] += 40*r_ui
+                    #C_i[uid] += 1*r_ui
                     P_i[uid] = 1
-                Temp = (XtX+(self.X.T*(C_i-I)).dot(self.X)+self.regU*np.eye(self.k))**-1
-                self.Y[iid] = (Temp.dot(self.X.T)*C_i).dot(P_i)
+                Temp = (XtX+self.X.T.dot(self.X)+self.regU*np.eye(self.k))
+                self.Y[iid]=np.dot(np.linalg.inv(Temp), self.X.T.dot(P_i))
 
             #self.loss += (self.X * self.X).sum() + (self.Y * self.Y).sum()
             iteration += 1
-            print 'iteration:',iteration
+            print 'iteration:',iteration,'loss:',self.loss
             # if self.isConverged(iteration):
             #     break
 
