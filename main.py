@@ -10,6 +10,7 @@ if __name__ == '__main__':
     print '='*80
     print 'CF-based Recommenders:'
     print '1. BPR   2. FISM   3. WRMF   4. IPF'
+    print '5. UserKNN'
 
 
     print 'Content-based Recommenders:\n'
@@ -42,6 +43,9 @@ if __name__ == '__main__':
 
     elif order=='4':
         conf = Config('./config/IPF.conf')
+
+    elif order=='5':
+        conf = Config('./config/UserKNN.conf')
 
     elif order == 'b1':
         conf = Config('./config/MostPop.conf')
