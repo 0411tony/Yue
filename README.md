@@ -141,6 +141,11 @@
     <td>Recommend most popular tracks, artists or albums
      </td>
   </tr>
+  <tr>
+    <td scope="row">UserKNN</td>
+    <td>A common user-based collaborative filtering method
+     </td>
+  </tr>
     <tr>
 	<td scope="row">BPR</td>
     <td>Rendle et al., BPR: Bayesian Personalized Ranking from Implicit Feedback, UAI 2009.<br>
