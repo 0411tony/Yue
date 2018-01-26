@@ -45,8 +45,6 @@ class SocialMR(IterativeRecommender):
         # filter isolated nodes and low ratings
         # Definition of Meta-Path
 
-
-        self.G = np.random.rand(self.data.getSize('user'), self.k) / 10
         self.W = np.random.rand(self.data.getSize('user'), self.walkDim) / 10
 
         self.user2track = defaultdict(list)
@@ -225,7 +223,7 @@ class SocialMR(IterativeRecommender):
 
 #        self.F = np.random.rand(self.data.trainingSize()[0], self.k) / 10
         # prepare Pu set, IPu set, and Nu set
-        self.b = np.random.random(self.data.getSize('track'))/10
+
         print 'Preparing item sets...'
         self.PositiveSet = defaultdict(dict)
         self.pSet = defaultdict(list)
