@@ -177,9 +177,13 @@
     <td>Zhang et al., Collaborative User Network Embedding for Social Recommender Systems, SDM 2017.
      </td>
   </tr>
+    <tr>
+    <td scope="row">Song2vec</td>
+    <td>Cheng et al., Exploiting Music Play Sequence for Music Recommendation, IJCAI 2017
+     </td>
+  </tr>
   </table>
 </div>
-
 </br>
 <h3>Dataset</h3>
 <div>

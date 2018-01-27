@@ -3,6 +3,7 @@ from base.IterativeRecommender import IterativeRecommender
 import math
 import numpy as np
 from tool import qmath
+from tool import config
 from random import choice
 from tool.qmath import sigmoid
 from math import log
@@ -10,6 +11,7 @@ from collections import defaultdict
 from scipy.sparse import *
 from scipy import *
 import gensim.models.word2vec as w2v
+from tool.qmath import cosine
 class Song2vec(IterativeRecommender):
     def __init__(self,conf,trainingSet=None,testSet=None,fold='[1]'):
         super(Song2vec, self).__init__(conf,trainingSet,testSet,fold)
@@ -43,7 +45,7 @@ class Song2vec(IterativeRecommender):
 
         print 'Constructing similarity matrix...'
         i = 0
-        self.topKSim = 0
+        self.topKSim = {}
         for track1 in self.data.listened['track']:
             tSim = []
             i += 1
