@@ -13,7 +13,7 @@ class Measure(object):
         return hitCount
 
     @staticmethod
-    def rankingMeasure(origin,res,N):
+    def rankingMeasure(origin,res,N,itemCount):
         measure = []
         for n in N:
             predicted = {}
@@ -34,9 +34,17 @@ class Measure(object):
             indicators.append('MAP:' + str(MAP) + '\n')
             #AUC = Measure.AUC(origin,res,rawRes)
             #measure.append('AUC:' + str(AUC) + '\n')
+            indicators.append('Coverage:'+str(Measure.coverage(res,itemCount))+'\n')
             measure.append('Top '+str(n)+'\n')
             measure+=indicators
         return measure
+    @staticmethod
+    def coverage(res,itemCount):
+        recommendations = set()
+        for user in res:
+            for item in res[user]:
+                recommendations.add(item)
+        return len(recommendations)/float(itemCount)
 
     @staticmethod
     def precision(hits,N):

@@ -124,7 +124,7 @@ class Recommender(object):
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
 
-        self.measure = Measure.rankingMeasure(self.data.testSet, recList,top)
+        self.measure = Measure.rankingMeasure(self.data.testSet, recList,top,self.data.getSize(self.recType))
 
         FileIO.writeFile(outDir, fileName, self.measure)
         print 'The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure))
