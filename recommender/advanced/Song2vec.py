@@ -115,9 +115,9 @@ class Song2vec(IterativeRecommender):
                 A = (XtX+np.dot(self.X.T,C_i.dot(self.X))+self.regU*np.eye(self.k))
                 self.Y[iid]=np.dot(np.linalg.inv(A), (self.X.T*H).dot(P_i))
 
-            for t1 in self.data.listened['track']:
+            for t1 in self.topKSim:
                 tid1 = self.data.getId(t1,'track')
-                for t2 in self.topKSim:
+                for t2 in self.topKSim[t1]:
                     tid2 = self.data.getId(t2[0],'track')
                     sim = t2[1]
                     error = (sim-self.Y[tid1].dot(self.Y[tid2]))

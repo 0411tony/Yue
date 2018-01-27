@@ -295,7 +295,11 @@ class SocialMR(IterativeRecommender):
                         self.Q[j] -= self.lRate * self.regI * self.Q[j]
 
                         self.loss += -log(s)
-
+            for user in self.topKSim:
+                for friend in self.topKSim[user]:
+                    u = self.data.getId(user,'user')
+                    f = self.data.getId(friend[0],'user')
+                    self.P[u] -= self.alpha*self.lRate*(self.P[u]-self.P[f])
             self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()
             iteration += 1
             if self.isConverged(iteration):
