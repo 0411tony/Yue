@@ -34,7 +34,7 @@ class Measure(object):
             indicators.append('MAP:' + str(MAP) + '\n')
             #AUC = Measure.AUC(origin,res,rawRes)
             #measure.append('AUC:' + str(AUC) + '\n')
-            indicators.append('Coverage:'+str(Measure.coverage(res,itemCount))+'\n')
+            indicators.append('Coverage:'+str(Measure.coverage(predicted,itemCount))+'\n')
             measure.append('Top '+str(n)+'\n')
             measure+=indicators
         return measure

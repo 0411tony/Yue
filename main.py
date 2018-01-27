@@ -21,6 +21,7 @@ if __name__ == '__main__':
 
     print 'Advanced Recommenders:'
     print 'a1. MEM   a2. SocialMR   a3. HME   a4. CUNE'
+    print 'a5. Song2vec'
 
 
 
@@ -64,6 +65,9 @@ if __name__ == '__main__':
 
     elif order == 'a4':
         conf = Config('./config/CUNE.conf')
+
+    elif order == 'a5':
+        conf = Config('./config/Song2vec.conf')
 
     else:
         print 'Error num!'
