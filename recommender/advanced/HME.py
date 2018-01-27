@@ -298,43 +298,43 @@ class HME(IterativeRecommender):
             for item in self.data.userRecord[user]:
                 userListened[user][item['track']] = 1
 
-        # print 'training...'
-        # iteration = 0
-        # itemList = self.data.name2id['track'].keys()
-        # while iteration < self.maxIter:
-        #     self.loss = 0
-        #     for user in self.data.userRecord:
-        #
-        #         u = self.data.getId(user, 'user')
-        #         for item in self.data.userRecord[user]:
-        #             i = self.data.getId(item['track'], 'track')
-        #             item_j = choice(itemList)
-        #             while (userListened[user].has_key(item_j)):
-        #                 item_j = choice(itemList)
-        #             j = self.data.getId(item_j, 'track')
-        #             s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
-        #             self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
-        #             self.Q[i] += self.lRate * (1 - s) * self.P[u]
-        #             self.Q[j] -= self.lRate * (1 - s) * self.P[u]
-        #             self.P[u] -= self.lRate * self.alpha*(self.beta*(self.P[u]-self.G[u])+(1-self.beta)*(self.P[u]-self.R[u]))
-        #             self.P[u] -= self.lRate * self.regU * self.P[u]
-        #             #self.Q[i] -= self.lRate * self.alpha*(self.Q[i]-self.I[i])
-        #             self.Q[i] -= self.lRate * self.regI * self.Q[i]
-        #             self.Q[j] -= self.lRate * self.regI * self.Q[j]
-        #             #self.Q[j] -= self.lRate * self.alpha * (self.Q[j] - self.I[j])
-        #             self.loss += -log(s)
-        #     self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()\
-        #                  +self.alpha*((1-self.beta)*((self.P-self.R)*(self.P-self.R)).sum()+
-        #                  self.beta*((self.P-self.G)*(self.P-self.G)).sum())#+\
-        #                  #self.alpha*((self.Q-self.I)*(self.Q-self.I)).sum()
-        #     iteration += 1
-        #     if self.isConverged(iteration):
-        #         break
+        print 'training...'
+        iteration = 0
+        itemList = self.data.name2id['track'].keys()
+        while iteration < self.maxIter:
+            self.loss = 0
+            for user in self.data.userRecord:
+
+                u = self.data.getId(user, 'user')
+                for item in self.data.userRecord[user]:
+                    i = self.data.getId(item['track'], 'track')
+                    item_j = choice(itemList)
+                    while (userListened[user].has_key(item_j)):
+                        item_j = choice(itemList)
+                    j = self.data.getId(item_j, 'track')
+                    s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
+                    self.P[u] += self.lRate * (1 - s) * (self.Q[i] - self.Q[j])
+                    self.Q[i] += self.lRate * (1 - s) * self.P[u]
+                    self.Q[j] -= self.lRate * (1 - s) * self.P[u]
+                    self.P[u] -= self.lRate * self.alpha*(self.beta*(self.P[u]-self.G[u])+(1-self.beta)*(self.P[u]-self.R[u]))
+                    self.P[u] -= self.lRate * self.regU * self.P[u]
+                    #self.Q[i] -= self.lRate * self.alpha*(self.Q[i]-self.I[i])
+                    self.Q[i] -= self.lRate * self.regI * self.Q[i]
+                    self.Q[j] -= self.lRate * self.regI * self.Q[j]
+                    #self.Q[j] -= self.lRate * self.alpha * (self.Q[j] - self.I[j])
+                    self.loss += -log(s)
+            self.loss += self.regU * (self.P * self.P).sum() + self.regI * (self.Q * self.Q).sum()\
+                         +self.alpha*((1-self.beta)*((self.P-self.R)*(self.P-self.R)).sum()+
+                         self.beta*((self.P-self.G)*(self.P-self.G)).sum())#+\
+                         #self.alpha*((self.Q-self.I)*(self.Q-self.I)).sum()
+            iteration += 1
+            if self.isConverged(iteration):
+                break
 
 
 
     def predict(self, u):
         'invoked to rank all the items for the user'
         u = self.data.getId(u, 'user')
-        return pairwise_distances(self.Q,[self.P[u]])
-        #return self.Q.dot(self.P[u])#+0.4*pairwise_distances(self.Q,[self.R[u]])
+        #return pairwise_distances(self.Q,[self.P[u]])
+        return self.Q.dot(self.P[u])#+0.4*pairwise_distances(self.Q,[self.R[u]])
