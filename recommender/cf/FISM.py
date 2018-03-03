@@ -80,7 +80,6 @@ class FISM(IterativeRecommender):
 
     def predict(self, user):
         'invoked to rank all the items for the user'
-        u = self.data.getId(user,'user')
         #a trick for quick matrix computation
         sum_Pj = np.zeros(self.k)
         for item in self.data.userRecord[user]:
