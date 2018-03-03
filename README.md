@@ -1,4 +1,4 @@
-<img src=http://chuantu.biz/t6/187/1514299017x-1404764539.png />
+<img src=http://i2.bvimg.com/631692/4ee57e7584ce5e94.png />
 
 **Founder**: [@Coder-Yu ](https://github.com/Coder-Yu)</br>
 <b>More implementations of generic recommenders can be found in [RecQ](https://github.com/Coder-Yu)</b></br>
