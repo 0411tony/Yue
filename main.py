@@ -54,19 +54,11 @@ if __name__ == '__main__':
     elif order == 'b2':
         conf = Config('./config/rand.conf')
 
+
     elif order == 'a1':
-        conf = Config('./config/MEM.conf')
-
-    elif order == 'a2':
-        conf = Config('./config/SocialMR.conf')
-
-    elif order == 'a3':
-        conf = Config('./config/HME.conf')
-
-    elif order == 'a4':
         conf = Config('./config/CUNE.conf')
 
-    elif order == 'a5':
+    elif order == 'a2':
         conf = Config('./config/Song2vec.conf')
 
     else:
