@@ -61,17 +61,17 @@ class Record(object):
                     self.userRecord[entry['user']].append(entry)
                     if entry.has_key('artist'):
                         if not self.listened['artist'][entry['artist']].has_key(entry[key]):
-                            self.listened['artist'][entry['artist']][entry[key]] = 0
+                            self.listened['artist'][entry['artist']][entry[key]] = 1
                         else:
                             self.listened['artist'][entry['artist']][entry[key]] += 1
                     if  entry.has_key('album'):
                         if not self.listened['album'][entry['album']].has_key(entry[key]):
-                            self.listened['album'][entry['album']][entry[key]] = 0
+                            self.listened['album'][entry['album']][entry[key]] = 1
                         else:
                             self.listened['album'][entry['album']][entry[key]] += 1
                     if entry.has_key('track'):
                         if not self.listened['track'][entry['track']].has_key(entry[key]):
-                            self.listened['track'][entry['track']][entry[key]] = 0
+                            self.listened['track'][entry['track']][entry[key]] = 1
                         else:
                             self.listened['track'][entry['track']][entry[key]] += 1
                 if key == 'artist' and entry.has_key('album'):
