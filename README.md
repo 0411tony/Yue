@@ -5,7 +5,7 @@
 
 <h2>Introduction</h2>
 
-**Yue** is a Python library for Music Recommendation (Python 2.7.x). It implements a suit of state-of-the-art music recommenders. To run Yue easily (no need to setup dendencies used in RecQ one by one), the leading open data science platform  [**Anaconda**](https://www.continuum.io/downloads) is strongly recommended. It integrates Python interpreter, common scientific computing libraries (such as Numpy, Pandas, and Matplotlib), and package manager, all of them make it a perfect tool for data science researcher.
+**Yue** is a Python library for Music Recommendation (Python 3.5.x). It implements a suit of state-of-the-art music recommenders. To run Yue easily (no need to setup dendencies used in RecQ one by one), the leading open data science platform  [**Anaconda**](https://www.continuum.io/downloads) is strongly recommended. It integrates Python interpreter, common scientific computing libraries (such as Numpy, Pandas, and Matplotlib), and package manager, all of them make it a perfect tool for data science researcher.
 
 
 <h2>Features</h2>
@@ -150,12 +150,6 @@
 	<td scope="row">BPR</td>
     <td>Rendle et al., BPR: Bayesian Personalized Ranking from Implicit Feedback, UAI 2009.<br>
     </td>
-  </tr>  
-
-  <tr>
-    <td scope="row">MEM(implementing...)</td>
-    <td>Wang et al., Learning music embedding with metadata for context aware recommendation, ICMR 2016.
-     </td>
   </tr>  
    <tr>
     <td scope="row">FISM</td>
