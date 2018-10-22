@@ -25,9 +25,9 @@ class BPR(IterativeRecommender):
             for item in self.data.userRecord[user]:
                 userListen[user][item[self.recType]] = 1
 
-        print 'training...'
+        print ('training...')
         iteration = 0
-        itemList = self.data.name2id[self.recType].keys()
+        itemList = list(self.data.name2id[self.recType].keys())
         while iteration < self.maxIter:
             self.loss = 0
             for user in self.data.userRecord:
@@ -35,7 +35,7 @@ class BPR(IterativeRecommender):
                 for item in self.data.userRecord[user]:
                     i = self.data.getId(item[self.recType],self.recType)
                     item_j = choice(itemList)
-                    while (userListen[user].has_key(item_j)):
+                    while (item_j in userListen[user]):
                         item_j = choice(itemList)
                     j = self.data.getId(item_j,self.recType)
                     s = sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))
@@ -52,11 +52,7 @@ class BPR(IterativeRecommender):
             if self.isConverged(iteration):
                 break
 
-
     def predict(self, u):
         'invoked to rank all the items for the user'
         u = self.data.getId(u,'user')
         return self.Q.dot(self.P[u])
-
-
-
