@@ -9,10 +9,10 @@ class SparseMatrix(object):
         self.matrix[r][c]=val
 
     def get(self,r,c):
-        if self.matrix.has_key(r) and self.matrix[r].has_key(c):
+        if r in self.matrix and c in self.matrix[r]:
             return self.matrix[r][c]
         else:
-            print 'No element in row',r,'and column',c
+            print ('No element in row',r,'and column',c)
             raise KeyError
 
     def anyone(self):
