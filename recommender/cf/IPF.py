@@ -9,7 +9,7 @@ class IPF(Recommender):
 
     def initModel(self):
         super(IPF, self).initModel()
-        print 'initializing STG...'
+        print ('initializing STG...')
         userListened = defaultdict(list)
         self.sessionNodes = {}
         for user in self.data.userRecord:
@@ -61,9 +61,7 @@ class IPF(Recommender):
 
 
     def predict(self, user):
-
         rank = {}
-
         for p in self.path:
             visited = {}
             queue = []
@@ -76,29 +74,25 @@ class IPF(Recommender):
                 rank[p[0]+'_'+user] = 1-self.beta
             while len(queue)>0:
                 vType,v = queue.pop()
-                if visited.has_key(vType+v) and visited[vType+v]==1:
+                if (vType+v) in visited and visited[vType+v]==1:
                     continue
                 visited[vType+v]=1
                 if vType=='item':
                     continue
                 for nextNode in self.STG[p[distance[vType+v]]][v]:
                     nextType = p[distance[vType+v]+1]
-                    if not visited.has_key(nextType+nextNode):
+                    if (nextType+nextNode) not in visited:
                         distance[nextType+nextNode]=distance[vType+v]+1
                         queue.append((nextType,nextNode))
                         visited[nextType+nextNode]=0
                     else:
                         continue
                     if distance[vType+v]< distance[p[distance[vType+v]+1]+nextNode]:
-                        if not rank.has_key(nextType+'_'+nextNode):
+                        if (nextType+'_'+nextNode) not in rank:
                             rank[nextType+'_'+nextNode]=0
                         rank[nextType+'_'+nextNode]+=rank[vType+'_'+v]*self.probability((vType,v),(nextType,nextNode))
-        recommendedList = [(key[5:],value) for key,value in rank.iteritems() if key[0:5]=='item_']
+        recommendedList = [(key[5:],value) for key,value in rank.items() if key[0:5]=='item_']
         recommendedList = sorted(recommendedList,key=lambda d:d[1],reverse=True)
         recommendedList = [item[0] for item in recommendedList]
-        print 'user',user,'finished'
+        #print ('user',user,'finished')
         return recommendedList
-
-
-
-
