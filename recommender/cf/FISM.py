@@ -9,8 +9,6 @@ from math import log
 from collections import defaultdict
 class FISM(IterativeRecommender):
 
-
-
     def __init__(self,conf,trainingSet=None,testSet=None,fold='[1]'):
         super(FISM, self).__init__(conf,trainingSet,testSet,fold)
 
@@ -32,9 +30,9 @@ class FISM(IterativeRecommender):
             for item in self.data.userRecord[user]:
                 userListened[user][item[self.recType]] = 1
 
-        print 'training...'
+        print ('training...')
         iteration = 0
-        itemList = self.data.name2id[self.recType].keys()
+        itemList = list(self.data.name2id[self.recType].keys())
         while iteration < self.maxIter:
             self.loss = 0
             for user in self.data.userRecord:
@@ -52,7 +50,7 @@ class FISM(IterativeRecommender):
                     i = self.data.getId(item[self.recType],self.recType)
                     for count in range(self.rho):
                         item_j = choice(itemList)
-                        while (userListened[user].has_key(item_j)):
+                        while (item_j in userListened[user]):
                             item_j = choice(itemList)
                         j = self.data.getId(item_j,self.recType)
                         r_ui=coef*(sum_Pj-self.P[i]).dot(self.Q[i])+self.Bi[i]
@@ -76,8 +74,6 @@ class FISM(IterativeRecommender):
             if self.isConverged(iteration):
                 break
 
-
-
     def predict(self, user):
         'invoked to rank all the items for the user'
         #a trick for quick matrix computation
@@ -86,6 +82,3 @@ class FISM(IterativeRecommender):
             j = self.data.getId(item[self.recType], self.recType)
             sum_Pj += self.P[j]
         return self.Bi+self.Q.dot(sum_Pj)-(self.P*self.Q).sum(axis=1)
-
-
-
