@@ -4,7 +4,6 @@ from tool.config import Config,LineConfig
 from tool.file import FileIO
 from tool.dataSplit import *
 from multiprocessing import Process,Manager
-from tool.file import FileIO
 from time import strftime,localtime,time
 from json import loads
 import mkl
@@ -13,7 +12,7 @@ class Yue(object):
         self.trainingData = []  # training data
         self.testData = []  # testData
         self.measure = []
-        self.config =config
+        self.config = config
         setup = LineConfig(config['record.setup'])
         columns = {}
         labels = setup['-columns'].split(',')
@@ -23,6 +22,7 @@ class Yue(object):
         for col in labels:
             label = col.split(':')
             columns[label[0]] = int(label[1])
+
         if self.config.contains('evaluation.setup'):
             self.evaluation = LineConfig(config['evaluation.setup'])
             binarized = False
@@ -32,13 +32,11 @@ class Yue(object):
                 bottom = float(self.evaluation['-b'])
             if self.evaluation.contains('-testSet'):
                 #specify testSet
-
                 self.trainingData = FileIO.loadDataSet(config['record'],columns=columns,binarized=binarized,threshold=bottom,delim=delim)
                 self.testData = FileIO.loadDataSet(self.evaluation['-testSet'],binarized=binarized,columns=columns,threshold=bottom,delim=delim)
 
             elif self.evaluation.contains('-ap'):
                 #auto partition
-
                 self.trainingData = FileIO.loadDataSet(config['record'],columns=columns,binarized=binarized,threshold=bottom,delim=delim)
                 self.trainingData,self.testData = DataSplit.\
                     dataSplit(self.trainingData,test_ratio=float(self.evaluation['-ap']))
@@ -53,14 +51,14 @@ class Yue(object):
                 #self.trainingData,self.testData = DataSplit.crossValidation(self.trainingData,int(self.evaluation['-cv']))
 
         else:
-            print 'Evaluation is not well configured!'
+            print ('Evaluation is not well configured!')
             exit(-1)
 
         # if config.contains('social'):
         #     self.socialConfig = LineConfig(self.config['social.setup'])
         #     self.relation = FileIO.loadRelationship(config,self.config['social'])
 
-        print 'preprocessing...'
+        print ('preprocessing...')
 
 
 
@@ -131,7 +129,7 @@ class Yue(object):
             outDir = LineConfig(self.config['output.setup'])['-dir']
             fileName = self.config['recommender'] +'@'+currentTime+'-'+str(k)+'-fold-cv' + '.txt'
             FileIO.writeFile(outDir,fileName,res)
-            print 'The result of %d-fold cross validation:\n%s' %(k,''.join(res))
+            print ('The result of %d-fold cross validation:\n%s' %(k,''.join(res)))
 
 
         else:
