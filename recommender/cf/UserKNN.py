@@ -16,9 +16,9 @@ class UserKNN(Recommender):
     def printAlgorConfig(self):
         "show algorithm's configuration"
         super(UserKNN, self).printAlgorConfig()
-        print 'Specified Arguments of',self.config['recommender']+':'
-        print 'num.neighbors:',self.config['num.neighbors']
-        print '='*80
+        print ('Specified Arguments of',self.config['recommender']+':')
+        print ('num.neighbors:',self.config['num.neighbors'])
+        print ('='*80)
 
     def initModel(self):
         self.computeCorr()
@@ -29,7 +29,7 @@ class UserKNN(Recommender):
             sum, denom = 0, 0
             for simUser in self.topUsers[u]:
                 #if user n has rating on item i
-                    if self.data.listened[self.recType][item].has_key(simUser[0]):
+                    if simUser[0] in self.data.listened[self.recType][item]:
                         similarity = simUser[1]
                         score = self.data.listened[self.recType][item][simUser[0]]
                         sum += similarity*score
@@ -41,30 +41,29 @@ class UserKNN(Recommender):
         recommendations = [item[0] for item in recommendations]
         return recommendations
 
-
     def computeCorr(self):
         'compute correlation among users'
         userListen = defaultdict(dict)
         for user in self.data.userRecord:
             for item in self.data.userRecord[user]:
-                if userListen[user].has_key(item[self.recType]):
+                if item[self.recType] in userListen[user]:
                     userListen[user][item[self.recType]] += 1
                 else:
                     userListen[user][item[self.recType]] = 0
-        print 'Computing user similarities...'
+        print ('Computing user similarities...')
         for ind,u1 in enumerate(userListen):
             set1 = set(userListen[u1].keys())
             for u2 in userListen:
-                if u1 <> u2:
+                if u1 != u2:
                     if self.userSim.contains(u1,u2):
                         continue
                     set2 = set(userListen[u2].keys())
                     sim = self.jaccard(set1,set2)
                     self.userSim.set(u1,u2,sim)
-            self.topUsers[u1] = sorted(self.userSim[u1].iteritems(), key=lambda d: d[1], reverse=True)[:self.neighbors]
+            self.topUsers[u1] = sorted(self.userSim[u1].items(), key=lambda d: d[1], reverse=True)[:self.neighbors]
             if ind%100==0:
-                print ind,'/',len(userListen), 'finished.'
-        print 'The user correlation has been figured out.'
+                print (ind,'/',len(userListen), 'finished.')
+        print ('The user correlation has been figured out.')
 
     def jaccard(self,s1,s2):
         return 2*len(s1.intersection(s2))/(len(s1.union(s2))+0.0)
