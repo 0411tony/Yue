@@ -32,45 +32,54 @@ class Song2vec(IterativeRecommender):
     def buildModel(self):
         self.T = np.random.rand(self.data.getSize('track'),self.k)
         sentences = []
+        self.listenTrack = set()
+        self.user = defaultdict(list)
         for user in self.data.userRecord:
             playList = []
-            for item in self.data.userRecord[user]:
-                playList.append(item['track'])
-            sentences.append(playList)
+            if len(self.data.userRecord[user]) > 10:
+                self.user[user] = self.data.userRecord[user]
+                for item in self.data.userRecord[user]:
+                    playList.append(item['track'])
+                    self.listenTrack.add(item['track'])
+                sentences.append(playList)
+        # print('the sentences:', self.data.userRecord)
         model = w2v.Word2Vec(sentences, size=self.k, window=5, min_count=0, iter=10)
-        for track in self.data.listened['track']:
+        for track in self.listenTrack:
             tid = self.data.getId(track, 'track')
             self.T[tid] = model.wv[track]
-        print 'song embedding generated.'
+        print ('song embedding generated.')
 
-        print 'Constructing similarity matrix...'
+        print ('Constructing similarity matrix...')
         i = 0
         self.topKSim = {}
-        for track1 in self.data.listened['track']:
+        for track1 in self.listenTrack:
             tSim = []
             i += 1
             if i % 200 == 0:
-                print i, '/', len(self.data.listened['track'])
+                print (i, '/', len(self.listenTrack))
             vec1 = self.T[self.data.getId(track1, 'track')]
-            for track2 in self.data.listened['track']:
-                if track1 <> track2:
+            for track2 in self.listenTrack:
+                if track1 != track2:
                     vec2 = self.T[self.data.getId(track2, 'track')]
                     sim = cosine(vec1, vec2)
                     tSim.append((track2, sim))
 
             self.topKSim[track1] = sorted(tSim, key=lambda d: d[1], reverse=True)[:self.topK]
 
-
         userListen = defaultdict(dict)
-        for user in self.data.userRecord:
-            for item in self.data.userRecord[user]:
-                if not userListen[user].has_key(item[self.recType]):
+        for user in self.user:
+            for item in self.user[user]:
+                if item[self.recType] not in userListen[user]:
                     userListen[user][item[self.recType]] = 0
                 userListen[user][item[self.recType]] += 1
-        print 'training...'
+        print ('training...')
+        
+        
         iteration = 0
+        itemList = list(self.data.name2id[self.recType].keys())
         while iteration < self.maxIter:
             self.loss = 0
+            
             YtY = self.Y.T.dot(self.Y)
             I = np.ones(self.n)
             for user in self.data.name2id['user']:
@@ -114,6 +123,25 @@ class Song2vec(IterativeRecommender):
                 C_i = coo_matrix((val, (pos, pos)),shape=(self.m,self.m))
                 A = (XtX+np.dot(self.X.T,C_i.dot(self.X))+self.regU*np.eye(self.k))
                 self.Y[iid]=np.dot(np.linalg.inv(A), (self.X.T*H).dot(P_i))
+            
+            for user in self.user:
+                u = self.data.getId(user,'user')
+                for item in self.user[user]:
+                    i = self.data.getId(item[self.recType],self.recType)
+                    for ind in range(3):
+                        item_j = choice(itemList)
+                        while (item_j in userListen[user]):
+                            item_j = choice(itemList)
+                        j = self.data.getId(item_j,self.recType)
+                        s = sigmoid(self.X[u].dot(self.Y[i]) - self.X[u].dot(self.Y[j]))
+                        self.X[u] += self.lRate * (1 - s) * (self.Y[i] - self.Y[j])
+                        self.Y[i] += self.lRate * (1 - s) * self.X[u]
+                        self.Y[j] -= self.lRate * (1 - s) * self.X[u]
+
+                        self.X[u] -= self.lRate * self.regU * self.X[u]
+                        self.Y[i] -= self.lRate * self.regI * self.Y[i]
+                        self.Y[j] -= self.lRate * self.regI * self.Y[j]
+                        self.loss += -log(s)
 
             for t1 in self.topKSim:
                 tid1 = self.data.getId(t1,'track')
@@ -124,11 +152,10 @@ class Song2vec(IterativeRecommender):
                     self.loss+=error**2
                     self.Y[tid1]+=0.5*self.alpha*self.lRate*(error)*self.Y[tid2]
                     self.Y[tid2]+=0.5*self.alpha*self.lRate*(error)*self.Y[tid1]
-
-
-            #self.loss += (self.X * self.X).sum() + (self.Y * self.Y).sum()
+         
+            self.loss += (self.X * self.X).sum() + (self.Y * self.Y).sum()
             iteration += 1
-            print 'iteration:',iteration,'loss:',self.loss
+            print ('iteration:',iteration,'loss:',self.loss)
             # if self.isConverged(iteration):
             #     break
 
@@ -137,6 +164,3 @@ class Song2vec(IterativeRecommender):
         'invoked to rank all the items for the user'
         u = self.data.getId(u,'user')
         return self.Y.dot(self.X[u])
-
-
-
