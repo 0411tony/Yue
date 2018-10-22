@@ -25,10 +25,10 @@ class WRMF(IterativeRecommender):
         userListen = defaultdict(dict)
         for user in self.data.userRecord:
             for item in self.data.userRecord[user]:
-                if not userListen[user].has_key(item[self.recType]):
+                if item[self.recType] not in userListen[user]:
                     userListen[user][item[self.recType]] = 0
                 userListen[user][item[self.recType]] += 1
-        print 'training...'
+        print ('training...')
         iteration = 0
         while iteration < self.maxIter:
             self.loss = 0
@@ -78,15 +78,11 @@ class WRMF(IterativeRecommender):
 
             #self.loss += (self.X * self.X).sum() + (self.Y * self.Y).sum()
             iteration += 1
-            print 'iteration:',iteration,'loss:',self.loss
+            print ('iteration:',iteration,'loss:',self.loss)
             # if self.isConverged(iteration):
             #     break
-
 
     def predict(self, u):
         'invoked to rank all the items for the user'
         u = self.data.getId(u,'user')
         return self.Y.dot(self.X[u])
-
-
-
