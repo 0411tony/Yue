@@ -5,6 +5,7 @@ from tool.config import Config,LineConfig
 from os.path import abspath
 from time import strftime,localtime,time
 from evaluation.measure import Measure
+from collections import defaultdict
 class Recommender(object):
     def __init__(self,conf,trainingSet=None,testSet=None,fold='[1]'):
         self.config = conf
@@ -22,14 +23,27 @@ class Recommender(object):
             #evaluation on cold-start users
             threshold = int(LineConfig(self.config['evaluation.setup'])['-cold'])
             removedUser = []
+            removedTrack = defaultdict(list)
+            #for user in self.data.testSet:
+            #    if user in self.data.userRecord and len(self.data.userRecord[user])>threshold:
+            #        removedUser.append(user)
             for user in self.data.testSet:
-                if self.data.userRecord.has_key(user) and len(self.data.userRecord[user])>threshold:
-                    removedUser.append(user)
-            for user in removedUser:
-                del self.data.testSet[user]
+                if user in self.data.userRecord:
+                    for item in self.data.testSet[user]:
+                        if len(self.data.trackRecord[item]) > threshold:
+                            removedTrack[user].append(item)
+            for user in removedTrack:
+                for item in removedTrack[user]:
+                    del self.data.testSet[user][item]
+                if len(self.data.testSet[user]) == 0:
+                    del self.data.testSet[user]
+            #for user in removedUser:
+            #    del self.data.testSet[user]
+            
+
 
         if LineConfig(self.config['evaluation.setup']).contains('-sample'):
-            userList = self.data.testSet.keys()
+            userList = list(self.data.testSet.keys())
             removedUser=userList[:int(len(userList)*0.9)]
             for user in removedUser:
                 del self.data.testSet[user]
@@ -42,13 +56,13 @@ class Recommender(object):
 
     def printAlgorConfig(self):
         "show algorithm's configuration"
-        print 'Algorithm:',self.config['recommender']
-        print 'Training set:',abspath(self.config['record'])
+        print ('Algorithm:',self.config['recommender'])
+        print ('Training set:',abspath(self.config['record']))
         if LineConfig(self.config['evaluation.setup']).contains('-testSet'):
-            print 'Test set:',abspath(LineConfig(self.config['evaluation.setup']).getOption('-testSet'))
+            print ('Test set:',abspath(LineConfig(self.config['evaluation.setup']).getOption('-testSet')))
         #print 'Count of the users in training set: ',len()
         self.data.printTrainingSize()
-        print '='*80
+        print ('='*80)
 
     def initModel(self):
         pass
@@ -76,18 +90,20 @@ class Recommender(object):
         top = [int(num) for num in top]
         N = int(top[-1])
         if N > 100 or N < 0:
-            print 'N can not be larger than 100! It has been reassigned with 10'
+            print ('N can not be larger than 100! It has been reassigned with 10')
             N = 10
 
-        res.append('userId: recommendations in (itemId, ranking score) pairs, * means the item matches.\n')
+        res.append('userId: recommendations in (itemId, ranking score) pairs, * means the item matches, $ means the unpop item\n')
         # predict
         recList = {}
         userCount = len(self.data.testSet)
 
         for i, user in enumerate(self.data.testSet):
 
+            num_pop = 0
+
             line = user + ':'
-            if self.data.userRecord.has_key(user):
+            if user in self.data.userRecord:
                 predictedItems = self.predict(user)
             else:
                 predictedItems = ['0']*N
@@ -95,17 +111,21 @@ class Recommender(object):
             for k,item in enumerate(predictedItems):
                 predicted[item] = k
             for item in self.data.userRecord[user]:
-                if predicted.has_key(item[self.recType]):
+                if item[self.recType] in predicted:
                     del predicted[item[self.recType]]
-            predicted = sorted(predicted.iteritems(),key=lambda d:d[1])
+            predicted = sorted(predicted.items(),key=lambda d:d[1])
             predictedItems = [item[0] for item in predicted]
             recList[user] = predictedItems[:N]
+            #print('user', user, 'the recList:', type(self.data.testSet[user]))
 
             if i % 100 == 0:
-                print self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount)
+                print (self.algorName, self.foldInfo, 'progress:' + str(i) + '/' + str(userCount))
             for item in recList[user]:
-                if self.data.testSet[user].has_key(item):
+                if item in self.data.testSet[user]:
                     line += '*'
+                if item in self.data.PopTrack:
+                    num_pop += 1
+                    line += '$'
                 line += item + ','
 
             line += '\n'
@@ -119,7 +139,7 @@ class Recommender(object):
                 fileName = self.config['recommender'] + '@' + currentTime + '-top-' + self.ranking['-topN']\
                            + 'items' + self.foldInfo + '.txt'
             FileIO.writeFile(outDir, fileName, res)
-            print 'The result has been output to ', abspath(outDir), '.'
+            print ('The result has been output to ', abspath(outDir), '.')
         # output evaluation result
         outDir = self.output['-dir']
         fileName = self.config['recommender'] + '@' + currentTime + '-measure' + self.foldInfo + '.txt'
@@ -127,7 +147,7 @@ class Recommender(object):
         self.measure = Measure.rankingMeasure(self.data.testSet, recList,top,self.data.getSize(self.recType))
 
         FileIO.writeFile(outDir, fileName, self.measure)
-        print 'The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure))
+        print ('The result of %s %s:\n%s' % (self.algorName, self.foldInfo, ''.join(self.measure)))
 
     def execute(self):
         self.readConfiguration()
@@ -135,20 +155,20 @@ class Recommender(object):
             self.printAlgorConfig()
         #load model from disk or build model
         if self.isLoadModel:
-            print 'Loading model %s...' %(self.foldInfo)
+            print ('Loading model %s...' %(self.foldInfo))
             self.loadModel()
         else:
-            print 'Initializing model %s...' %(self.foldInfo)
+            print ('Initializing model %s...' %(self.foldInfo))
             self.initModel()
-            print 'Building Model %s...' %(self.foldInfo)
+            print ('Building Model %s...' %(self.foldInfo))
             self.buildModel()
 
         #preict the ratings or item ranking
-        print 'Predicting %s...' %(self.foldInfo)
+        print ('Predicting %s...' %(self.foldInfo))
         self.evalRanking()
         #save model
         if self.isSaveModel:
-            print 'Saving model %s...' %(self.foldInfo)
+            print ('Saving model %s...' %(self.foldInfo))
             self.saveModel()
 
         return self.measure
