@@ -1,7 +1,7 @@
 import os.path
 from os import makedirs,remove
 from re import compile,findall,split
-from config import LineConfig
+from tool.config import LineConfig
 class FileIO(object):
     def __init__(self):
         pass
@@ -21,11 +21,11 @@ class FileIO(object):
 
     @staticmethod
     def loadDataSet(file, columns,binarized = False, threshold = 3, delim='' ):
-        print 'load dataset...'
+        print ('load dataset...')
         record = []
         colNames = columns.keys()
         if len(colNames) < 2:
-            print 'The dataset needs more information or the record.setup setting has some problems...'
+            print ('The dataset needs more information or the record.setup setting has some problems...')
             exit(-1)
         index = [int(item) for item in columns.values()]
         delimiter=',| |\t'
@@ -40,18 +40,13 @@ class FileIO(object):
                     event = {}
                     for column,ind in zip(colNames,index):
                         event[column] = items[ind]
-                        if binarized and event.has_key('play'):
+                        if binarized and 'play' in event:
                             if int(event['play']) >= threshold:
                                 event['play'] = 1
                             else:
                                 event['play'] = 0
                     record.append(event)
                 except IndexError:
-                    print 'The record file is not in a correct format. Error Location: Line num %d' % lineNo
+                    print ('The record file is not in a correct format. Error Location: Line num %d' % lineNo)
                     exit(-1)
         return record
-
-
-
-
-
