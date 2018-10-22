@@ -7,33 +7,37 @@ class Config(object):
 
     def __getitem__(self, item):
         if not self.contains(item):
-            print 'parameter '+item+' is invalid!'
+            print ('parameter '+item+' is invalid!')
             exit(-1)
+
         return self.config[item]
 
     def getOptions(self,item):
         if not self.contains(item):
-            print 'parameter '+item+' is invalid!'
+            print ('parameter '+item+' is invalid!')
             exit(-1)
         return self.config[item]
 
     def contains(self,key):
-        return self.config.has_key(key)
+        if key in self.config:
+            return True
+        else:
+            return False
+        # return self.config.has_key()
 
     def readConfiguration(self,fileName):
         path = abspath(fileName)
         if not os.path.exists(path):
-            print 'config file is not found!'
+            print ('config file is not found!')
             raise IOError
         with open(path) as f:
             for ind,line in enumerate(f):
-                if line.strip()<>'':
+                if line.strip()!='':
                     try:
                         key,value=line.strip().split('=')
                         self.config[key]=value
                     except ValueError:
-                        print 'config file is not in the correct format! Error Line:%d'%(ind)
-
+                        print ('config file is not in the correct format! Error Line:%d'%(ind))
 
 
 class LineConfig(object):
@@ -63,13 +67,13 @@ class LineConfig(object):
 
     def __getitem__(self, item):
         if not self.contains(item):
-            print 'parameter '+item+' is invalid!'
+            print ('parameter '+item+' is invalid!')
             exit(-1)
         return self.options[item]
 
     def getOption(self,key):
         if not self.contains(key):
-            print 'parameter '+key+' is invalid!'
+            print ('parameter '+key+' is invalid!')
             exit(-1)
         return self.options[key]
 
@@ -77,6 +81,8 @@ class LineConfig(object):
         return self.mainOption
 
     def contains(self,key):
-        return self.options.has_key(key)
-
-
+        if key in self.options:
+            return True
+        else:
+            return False
+        # return self.options.has_key(key)
