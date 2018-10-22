@@ -25,16 +25,16 @@ class CUNE(IterativeRecommender):
 
     def printAlgorConfig(self):
         super(CUNE, self).printAlgorConfig()
-        print 'Specified Arguments of', self.config['recommender'] + ':'
-        print 'Walks count per user', self.walkCount
-        print 'Length of each walk', self.walkLength
-        print 'Dimension of user embedding', self.walkDim
-        print '='*80
+        print ('Specified Arguments of', self.config['recommender'] + ':')
+        print ('Walks count per user', self.walkCount)
+        print ('Length of each walk', self.walkLength)
+        print ('Dimension of user embedding', self.walkDim)
+        print ('='*80)
 
     def buildModel(self):
-        print 'Kind Note: This method will probably take much time.'
+        print ('Kind Note: This method will probably take much time.')
         #build C-U-NET
-        print 'Building collaborative user network...'
+        print ('Building collaborative user network...')
 
         userListen = defaultdict(dict)
         for user in self.data.userRecord:
@@ -45,13 +45,13 @@ class CUNE(IterativeRecommender):
         for user1 in userListen:
             s1 = set(userListen[user1].keys())
             for user2 in userListen:
-                if user1 <> user2:
+                if user1 != user2:
                     s2 = set(userListen[user2].keys())
                     weight = len(s1.intersection(s2))
                     if weight > 0:
                         self.CUNet[user1]+=[user2]*weight
 
-        print 'Generating random deep walks...'
+        print ('Generating random deep walks...')
         self.walks = []
         self.visited = defaultdict(dict)
         for user in self.CUNet:
@@ -61,7 +61,7 @@ class CUNE(IterativeRecommender):
                 for i in range(1,self.walkLength):
                     nextNode = choice(self.CUNet[lastNode])
                     count=0
-                    while(self.visited[lastNode].has_key(nextNode)):
+                    while(nextNode in self.visited[lastNode]):
                         nextNode = choice(self.CUNet[lastNode])
                         #break infinite loop
                         count+=1
@@ -71,16 +71,14 @@ class CUNE(IterativeRecommender):
                     self.visited[user][nextNode] = 1
                     lastNode = nextNode
                 self.walks.append(path)
-                #print path
         shuffle(self.walks)
 
         #Training get top-k friends
-        print 'Generating user embedding...'
-       
+        print ('Generating user embedding...')       
         model = w2v.Word2Vec(self.walks, size=self.walkDim, window=self.winSize, min_count=0, iter=self.epoch)
-        print 'User embedding generated.'
+        print ('User embedding generated.')
 
-        print 'Constructing similarity matrix...'
+        print ('Constructing similarity matrix...')
         self.W = np.random.rand(self.data.getSize('user'), self.k) / 10  # global user preference
         self.topKSim = {}
         i = 0
@@ -91,18 +89,18 @@ class CUNE(IterativeRecommender):
             sims = []
             u1 = self.data.getId(user1,'user')
             for user2 in self.CUNet:
-                if user1 <> user2:
+                if user1 != user2:
                     u2 = self.data.getId(user2,'user')
                     sims.append((user2,cosine(self.W[u1],self.W[u2])))
             self.topKSim[user1] = sorted(sims, key=lambda d: d[1], reverse=True)[:self.topK]
             i += 1
             if i % 200 == 0:
-                print 'progress:', i, '/', len(self.CUNet)
-        print 'Similarity matrix finished.'
+                print ('progress:', i, '/', len(self.CUNet))
+        print ('Similarity matrix finished.')
         #print self.topKSim
 
         #prepare Pu set, IPu set, and Nu set
-        print 'Preparing item sets...'
+        print ('Preparing item sets...')
         self.PositiveSet = defaultdict(list)
         self.IPositiveSet = defaultdict(list)
         #self.NegativeSet = defaultdict(list)
@@ -117,66 +115,64 @@ class CUNE(IterativeRecommender):
 
 
 
-        print 'Training...'
+        print ('Training...')
         iteration = 0
         while iteration < self.maxIter:
             self.loss = 0
-            itemList = self.data.name2id[self.recType].keys()
+            itemList = list(self.data.name2id[self.recType].keys())
             for user in self.PositiveSet:
                 u = self.data.getId(user,'user')
 
                 for item in self.PositiveSet[user]:
                     i = self.data.getId(item,self.recType)
-                    if len(self.IPositiveSet[user]) > 0:
-                        item_k = choice(self.IPositiveSet[user])
+                    for n in range(3):
+                        if len(self.IPositiveSet[user]) > 0:
+                            item_k = choice(self.IPositiveSet[user])
 
-                        k = self.data.getId(item_k,self.recType)
-                        self.P[u] += self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]))) * (
-                        self.Q[i] - self.Q[k])
-                        self.Q[i] += self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]))) * \
-                                     self.P[u]
-                        self.Q[k] -= self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]))) * \
-                                     self.P[u]
+                            k = self.data.getId(item_k,self.recType)
+                            self.P[u] += self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]))) * (
+                            self.Q[i] - self.Q[k])
+                            self.Q[i] += self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]))) * \
+                                        self.P[u]
+                            self.Q[k] -= self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]))) * \
+                                        self.P[u]
 
-                        item_j = ''
-                        # if len(self.NegativeSet[user])>0:
-                        #     item_j = choice(self.NegativeSet[user])
-                        # else:
-                        item_j = choice(itemList)
-                        while (self.data.listened[self.recType][item_j].has_key(user)):
+                            item_j = ''
+                            # if len(self.NegativeSet[user])>0:
+                            #     item_j = choice(self.NegativeSet[user])
+                            # else:
                             item_j = choice(itemList)
-                        j = self.data.getId(item_j,self.recType)
-                        self.P[u] += (1 / self.s) * self.lRate * (
-                        1 - sigmoid((1 / self.s) * (self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j])))) * (
-                                     self.Q[k] - self.Q[j])
-                        self.Q[k] += (1 / self.s) * self.lRate * (
-                        1 - sigmoid((1 / self.s) * (self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j])))) * self.P[u]
-                        self.Q[j] -= (1 / self.s) * self.lRate * (
-                        1 - sigmoid((1 / self.s) * (self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j])))) * self.P[u]
+                            while (user in self.data.listened[self.recType][item_j]):
+                                item_j = choice(itemList)
+                            j = self.data.getId(item_j,self.recType)
+                            self.P[u] += (1 / self.s) * self.lRate * (
+                            1 - sigmoid((1 / self.s) * (self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j])))) * (
+                                        self.Q[k] - self.Q[j])
+                            self.Q[k] += (1 / self.s) * self.lRate * (
+                            1 - sigmoid((1 / self.s) * (self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j])))) * self.P[u]
+                            self.Q[j] -= (1 / self.s) * self.lRate * (
+                            1 - sigmoid((1 / self.s) * (self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j])))) * self.P[u]
 
-                        self.P[u] -= self.lRate * self.regU * self.P[u]
-                        self.Q[i] -= self.lRate * self.regI * self.Q[i]
-                        self.Q[j] -= self.lRate * self.regI * self.Q[j]
-                        self.Q[k] -= self.lRate * self.regI * self.Q[k]
+                            self.P[u] -= self.lRate * self.regU * self.P[u]
+                            self.Q[i] -= self.lRate * self.regI * self.Q[i]
+                            self.Q[j] -= self.lRate * self.regI * self.Q[j]
+                            self.Q[k] -= self.lRate * self.regI * self.Q[k]
 
-                        self.loss += -log(sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]))) - \
-                                     log(sigmoid((1 / self.s) * (self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j]))))
-                    else:
-                        item_j = choice(itemList)
-                        while (self.data.listened[self.recType][item_j].has_key(user)):
+                            self.loss += -log(sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[k]))) - \
+                                        log(sigmoid((1 / self.s) * (self.P[u].dot(self.Q[k]) - self.P[u].dot(self.Q[j]))))
+                        else:
                             item_j = choice(itemList)
-                        j = self.data.getId(item_j,self.recType)
-                        self.P[u] += self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))) * (
-                            self.Q[i] - self.Q[j])
-                        self.Q[i] += self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))) * \
-                                     self.P[u]
-                        self.Q[j] -= self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))) * \
-                                     self.P[u]
+                            while (user in self.data.listened[self.recType][item_j]):
+                                item_j = choice(itemList)
+                            j = self.data.getId(item_j,self.recType)
+                            self.P[u] += self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))) * (self.Q[i] - self.Q[j])
+                            self.Q[i] += self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))) * self.P[u]
+                            self.Q[j] -= self.lRate * (1 - sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j]))) * self.P[u]
 
-                        self.loss += -log(sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j])))
+                            self.loss += -log(sigmoid(self.P[u].dot(self.Q[i]) - self.P[u].dot(self.Q[j])))
 
 
-            self.loss += self.regU*(self.P*self.P).sum() + self.regI*(self.Q*self.Q).sum()
+                self.loss += self.regU*(self.P*self.P).sum() + self.regI*(self.Q*self.Q).sum()
             iteration += 1
             if self.isConverged(iteration):
                 break
