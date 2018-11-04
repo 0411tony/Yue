@@ -22,6 +22,8 @@ class Song2vec(IterativeRecommender):
         self.Y=self.Q*10
         self.m = self.data.getSize('user')
         self.n = self.data.getSize(self.recType)
+        self.Bu = np.random.rand(self.m)/10  # bias value of user
+        self.Bi = np.random.rand(self.n)/10  # bias value of item
 
     def readConfiguration(self):
         super(Song2vec, self).readConfiguration()
@@ -42,13 +44,12 @@ class Song2vec(IterativeRecommender):
                     playList.append(item['track'])
                     self.listenTrack.add(item['track'])
                 sentences.append(playList)
-        # print('the sentences:', self.data.userRecord)
         model = w2v.Word2Vec(sentences, size=self.k, window=5, min_count=0, iter=10)
         for track in self.listenTrack:
             tid = self.data.getId(track, 'track')
             self.T[tid] = model.wv[track]
         print ('song embedding generated.')
-
+       
         print ('Constructing similarity matrix...')
         i = 0
         self.topKSim = {}
@@ -67,13 +68,19 @@ class Song2vec(IterativeRecommender):
             self.topKSim[track1] = sorted(tSim, key=lambda d: d[1], reverse=True)[:self.topK]
 
         userListen = defaultdict(dict)
-        for user in self.user:
-            for item in self.user[user]:
-                if item[self.recType] not in userListen[user]:
-                    userListen[user][item[self.recType]] = 0
-                userListen[user][item[self.recType]] += 1
+        self.avg = 0
+        rating_sum = 0
+        for item in self.data.trainingData:
+            uid = self.data.getId(item['user'], 'user')
+            tid = self.data.getId(item['track'], 'track')
+            if tid not in userListen[uid]:
+                userListen[uid][tid] = 1
+            else:
+                userListen[uid][tid] += 1
+            rating_sum += 1
+        self.avg = (rating_sum/len(userListen))/len(self.data.trackRecord)
+
         print ('training...')
-        
         
         iteration = 0
         itemList = list(self.data.name2id[self.recType].keys())
@@ -158,9 +165,42 @@ class Song2vec(IterativeRecommender):
             print ('iteration:',iteration,'loss:',self.loss)
             # if self.isConverged(iteration):
             #     break
+        '''
+        iteration = 0
+        while iteration < self.maxIter:
+            self.loss = 0
+            for item in self.data.trainingData:
+                u = self.data.getId(item['user'], 'user')
+                i = self.data.getId(item['track'], 'track')
+                bu = self.Bu[u]
+                bi = self.Bi[i]
+                rating = self.Y[i].dot(self.X[u]) + self.avg + self.Bu[u] + self.Bi[i]
+                error = userListen[u][i] - rating
+                self.loss += error**2
+                self.X[u] += self.lRate * (error*self.Y[i] - self.regU*self.X[u])
+                self.Y[i] += self.lRate * (error*self.X[u] - self.regI*self.Y[i])
 
+                self.Bu[u] += self.lRate * (error - self.regB * bu)
+                self.Bi[i] += self.lRate * (error - self.regB * bi)
 
+            for t1 in self.topKSim:
+                tid1 = self.data.getId(t1,'track')
+                for t2 in self.topKSim[t1]:
+                    tid2 = self.data.getId(t2[0],'track')
+                    sim = t2[1]
+                    error2 = (sim-self.Y[tid1].dot(self.Y[tid2]))
+                    self.loss+=error2**2
+                    self.Y[tid1]+=0.5*self.alpha*self.lRate*(error2)*self.Y[tid2] 
+                    self.Y[tid2]+=0.5*self.alpha*self.lRate*(error2)*self.Y[tid1]
+            self.loss += self.regB*(self.Bu * self.Bu).sum() + self.regB*(self.Bi*self.Bi).sum() + (self.X * self.X).sum() + (self.Y * self.Y).sum()
+            iteration += 1
+            print ('iteration:',iteration,'loss:',self.loss)
+            if self.isConverged(iteration):
+                break
+       ''' 
+        
     def predict(self, u):
         'invoked to rank all the items for the user'
         u = self.data.getId(u,'user')
+        # return self.Y.dot(self.X[u]) + self.avg + self.Bu[u] + self.Bi
         return self.Y.dot(self.X[u])
