@@ -1,0 +1,59 @@
+from base.IterativeRecommender import IterativeRecommender
+from tool import config
+import numpy as np
+from random import shuffle
+import tensorflow as tf
+
+class DeepRecommender(IterativeRecommender):
+    def __init__(self,conf,trainingSet=None,testSet=None,fold='[1]'):
+        super(DeepRecommender, self).__init__(conf,trainingSet,testSet,fold)
+
+    def readConfiguration(self):
+        super(DeepRecommender, self).readConfiguration()
+        # set the reduced dimension
+        self.batch_size = int(self.config['batch_size'])
+        # regularization parameter
+        regular = config.LineConfig(self.config['reg.lambda'])
+        self.regU,self.regI,self.regB= float(regular['-u']),float(regular['-i']),float(regular['-b'])
+
+    def printAlgorConfig(self):
+        super(DeepRecommender, self).printAlgorConfig()
+
+    def initModel(self):
+        self.u_idx = tf.placeholder(tf.int32, [None], name="u_idx")
+        self.v_idx = tf.placeholder(tf.int32, [None], name="v_idx")
+
+        self.r = tf.placeholder(tf.float32, [None], name="rating")
+        self.m = self.data.getSize('user')
+        self.n = self.data.getSize(self.recType)
+        self.train_size = len(self.data.trainingData)
+        self.U = tf.Variable(tf.truncated_normal(shape=[self.m, self.k], stddev=0.005), name='U')
+        self.V = tf.Variable(tf.truncated_normal(shape=[self.n, self.k], stddev=0.005), name='V')
+
+        self.U_embed = tf.nn.embedding_lookup(self.U, self.u_idx)
+        self.V_embed = tf.nn.embedding_lookup(self.V, self.v_idx)
+        self.sess = tf.Session()
+
+    def saveModel(self):
+        pass
+
+    def loadModel(self):
+        pass
+
+    def predictForRanking(self,u):
+        'used to rank all the items for the user'
+        pass
+
+    def isConverged(self,iter):
+        from math import isnan
+        if isnan(self.loss):
+            print ('Loss = NaN or Infinity: current settings does not fit the recommender! Change the settings and try again!')
+            exit(-1)
+        deltaLoss = (self.lastLoss-self.loss)        
+        #check if converged
+        cond = abs(deltaLoss) < 1e-8
+        converged = cond
+        if not converged:
+            self.updateLearningRate(iter)
+        self.lastLoss = self.loss
+        return converged
