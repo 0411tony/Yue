@@ -65,7 +65,7 @@ if __name__ == '__main__':
         conf = Config('./config/BasicMF.conf')
     
     elif order == 'a4':
-        conf = Config('./config/CDAE.conf')
+        conf = Config('./config/APR.conf')
 
     elif order == 'a5':
         conf = Config('./config/DMF.conf')
