@@ -241,6 +241,17 @@
     <td>Yes</td>
     <td>N/A</td>
     <td>N/A</td>
+   </tr>  
+    <tr>
+    <td><a href="https://pan.baidu.com/s/1J83KK1DVZnrHwqEwkmByxA" target="_blank"><b>30 Music</b></a> <a href="http://recsys.deib.polimi.it/?page_id=54">[source]</a>[4]</td>
+    <td>45167</td>
+    <td>5023108</td>
+    <td>595049</td>
+   <td>217337</td>
+    <td>many</td>
+    <td>Yes</td>
+    <td>Yes</td>
+    <td>N/A</td>
    </tr>   
   </table>
 </div>
@@ -249,4 +260,4 @@
 <p> [1]. Eva Zangerle, Martin Pichl, Wolfgang Gassler, and Günther Specht. 2014. #nowplaying Music Dataset: Extracting Listening Behavior from Twitter. In Proceedings of the First International Workshop on Internet-Scale Multimedia Management (WISMM '14). ACM, New York, NY, USA, 21-26 </p>
 <p> [2]. Wang, Dongjing, et al. "Learning music embedding with metadata for context aware recommendation." Proceedings of the 2016 ACM on International Conference on Multimedia Retrieval. ACM, 2016.</p>
 <p> [3]. Iván Cantador, Peter Brusilovsky, and Tsvi Kuflik. 2011. 2nd Workshop on Information Heterogeneity and Fusion in Recom- mender Systems (HetRec 2011). In Proceedings of the 5th ACM conference on Recommender systems (RecSys 2011). ACM, New York, NY, USA</p>
-
+<p> [4]. Turrin R, Quadrana M, Condorelli A, et al. 30Music Listening and Playlists Dataset[C]//RecSys Posters. 2015. </p>
