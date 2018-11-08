@@ -176,6 +176,11 @@
     <td>Cheng et al., Exploiting Music Play Sequence for Music Recommendation, IJCAI 2017
      </td>
   </tr>
+  <tr>
+    <td scope="row">APR</td>
+    <td>He et al., Adversarial Personalized Ranking for Recommendation, SIGIR 2018.
+     </td>
+  </tr>
   </table>
 </div>
 </br>
