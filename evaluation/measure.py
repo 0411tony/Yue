@@ -21,7 +21,7 @@ class Measure(object):
                 predicted[user] = res[user][:n]
             indicators = []
             if len(origin)!= len(predicted):
-                print 'The Lengths of test set and predicted set are not match!'
+                print ('The Lengths of test set and predicted set are not match!')
                 exit(-1)
             hits = Measure.hits(origin,predicted)
             prec = Measure.precision(hits,n)
