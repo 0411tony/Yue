@@ -14,6 +14,7 @@ class Measure(object):
 
     @staticmethod
     def rankingMeasure(origin,res,N,itemCount):
+        print('rank measure...')
         measure = []
         for n in N:
             predicted = {}
@@ -21,7 +22,7 @@ class Measure(object):
                 predicted[user] = res[user][:n]
             indicators = []
             if len(origin)!= len(predicted):
-                print ('The Lengths of test set and predicted set are not match!')
+                print('The Lengths of test set and predicted set are not match!')
                 exit(-1)
             hits = Measure.hits(origin,predicted)
             prec = Measure.precision(hits,n)
@@ -58,7 +59,7 @@ class Measure(object):
             hits = 0
             precision = 0
             for n, item in enumerate(res[user]):
-                if origin[user].has_key(item):
+                if item in origin[user]:
                     hits += 1
                     precision += hits / (n + 1.0)
             sum_prec += precision / (min(len(origin[user]), N) + 0.0)
@@ -98,6 +99,3 @@ class Measure(object):
             return 2*prec*recall/(prec+recall)
         else:
             return 0
-
-
-
