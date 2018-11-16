@@ -136,51 +136,67 @@
     <td>Recommend tracks, artists or albums randomly
      </td>
   </tr>
+	
   <tr>
     <td scope="row">MostPop</td>
     <td>Recommend most popular tracks, artists or albums
      </td>
   </tr>
+	
   <tr>
     <td scope="row">UserKNN</td>
     <td>A common user-based collaborative filtering method
      </td>
   </tr>
-    <tr>
+	
+  <tr>
 	<td scope="row">BPR</td>
     <td>Rendle et al., BPR: Bayesian Personalized Ranking from Implicit Feedback, UAI 2009.<br>
     </td>
-  </tr>  
-   <tr>
+  </tr> 
+	
+  <tr>
     <td scope="row">FISM</td>
     <td>Kabbur et al., FISM: Factored Item Similarity Models for Top-N Recommender Systems, KDD 2013.
      </td>
   </tr>
-    <tr>
+	
+  <tr>
     <td scope="row">IPF</td>
     <td>Xiang et al., Temporal Recommendation on Graphs via Long- and Short-term Preference Fusion, KDD 2010.
      </td>
   </tr>
-    <tr>
+	
+  <tr>
     <td scope="row">WRMF</td>
     <td>Hu et al., Collaborative Filtering for Implicit Feedback Datasets, KDD 2009.
      </td>
   </tr>
+	
   <tr>
     <td scope="row">CUNE</td>
     <td>Zhang et al., Collaborative User Network Embedding for Social Recommender Systems, SDM 2017.
      </td>
   </tr>
-    <tr>
+	
+  <tr>
     <td scope="row">Song2vec</td>
     <td>Cheng et al., Exploiting Music Play Sequence for Music Recommendation, IJCAI 2017
      </td>
   </tr>
+	
+  <tr>
+	<td scope="row">DMF</td>
+    <td>Xue et al., Deep Matrix Factorization Models for Recommender Systems, IJCAI 2017.<br>
+    </td>
+  </tr>
+  
   <tr>
     <td scope="row">APR</td>
     <td>He et al., Adversarial Personalized Ranking for Recommendation, SIGIR 2018.
      </td>
   </tr>
+  
   </table>
 </div>
 </br>
