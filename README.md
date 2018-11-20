@@ -5,7 +5,7 @@
 
 <h2>Introduction</h2>
 
-**Yue** is a Python library for Music Recommendation (Python 3.5.x). It implements a suit of state-of-the-art music recommenders. To run Yue easily (no need to setup dendencies used in RecQ one by one), the leading open data science platform  [**Anaconda**](https://www.continuum.io/downloads) is strongly recommended. It integrates Python interpreter, common scientific computing libraries (such as Numpy, Pandas, and Matplotlib), and package manager, all of them make it a perfect tool for data science researcher.
+**Yue** is a Python library for Music Recommendation (Python 3.5.x). It implements a suit of state-of-the-art music recommenders. To run Yue easily (no need to setup dendencies used in RecQ one by one), the leading open data science platform  [**Anaconda**](https://www.continuum.io/downloads) is strongly recommended. It integrates Python interpreter, common scientific computing libraries (such as Numpy, Pandas, and Matplotlib), and package manager, all of them make it a perfect tool for data science researcher.
 
 
 <h2>Features</h2>
@@ -58,7 +58,7 @@
       <b>-byTime ratio </b> (sort the user record in order of the time. ratio decides the percentage of test set(recently played).</br>
       Secondary option:-b, -p, -cold</br>
       <b>-target track </b>(This option decides which type of object will be recommended (artist, track, album). Only available for some general recommenders like MostPop) </br> 
-      -b val （binarizing the rating values. Ratings equal or greater than val will be changed into 1, and ratings lower than val will be changed into 0. e.g. -b 3.0）</br>
+      -b val （binarizing the rating values. Ratings equal or greater than val will be changed into 1, and ratings lower than val will be changed into 0. e.g. -b 3.0）</br>
       -p (if this option is added, the cross validation wll be excuted parallelly, otherwise excuted one by one) </br>
       -cold threshold (evaluation on cold-start users, users in training set with ratings more than threshold will be removed from the test set)
      </td>
@@ -133,70 +133,54 @@
   </tr>
   <tr>
     <td scope="row">Rand</td>
-    <td>Recommend tracks, artists or albums randomly
+    <td>Recommend tracks, artists or albums randomly
      </td>
   </tr>
-	
   <tr>
     <td scope="row">MostPop</td>
-    <td>Recommend most popular tracks, artists or albums
+    <td>Recommend most popular tracks, artists or albums
      </td>
   </tr>
-	
   <tr>
     <td scope="row">UserKNN</td>
-    <td>A common user-based collaborative filtering method
+    <td>A common user-based collaborative filtering method
      </td>
   </tr>
-	
-  <tr>
+    <tr>
 	<td scope="row">BPR</td>
     <td>Rendle et al., BPR: Bayesian Personalized Ranking from Implicit Feedback, UAI 2009.<br>
     </td>
-  </tr> 
-	
-  <tr>
+  </tr>  
+   <tr>
     <td scope="row">FISM</td>
-    <td>Kabbur et al., FISM: Factored Item Similarity Models for Top-N Recommender Systems, KDD 2013.
+    <td>Kabbur et al., FISM: Factored Item Similarity Models for Top-N Recommender Systems, KDD 2013.
      </td>
   </tr>
-	
-  <tr>
+    <tr>
     <td scope="row">IPF</td>
-    <td>Xiang et al., Temporal Recommendation on Graphs via Long- and Short-term Preference Fusion, KDD 2010.
+    <td>Xiang et al., Temporal Recommendation on Graphs via Long- and Short-term Preference Fusion, KDD 2010.
      </td>
   </tr>
-	
-  <tr>
+    <tr>
     <td scope="row">WRMF</td>
-    <td>Hu et al., Collaborative Filtering for Implicit Feedback Datasets, KDD 2009.
+    <td>Hu et al., Collaborative Filtering for Implicit Feedback Datasets, KDD 2009.
      </td>
   </tr>
-	
   <tr>
     <td scope="row">CUNE</td>
-    <td>Zhang et al., Collaborative User Network Embedding for Social Recommender Systems, SDM 2017.
+    <td>Zhang et al., Collaborative User Network Embedding for Social Recommender Systems, SDM 2017.
      </td>
   </tr>
-	
-  <tr>
+    <tr>
     <td scope="row">Song2vec</td>
-    <td>Cheng et al., Exploiting Music Play Sequence for Music Recommendation, IJCAI 2017
+    <td>Cheng et al., Exploiting Music Play Sequence for Music Recommendation, IJCAI 2017
      </td>
   </tr>
-	
-  <tr>
-	<td scope="row">DMF</td>
-    <td>Xue et al., Deep Matrix Factorization Models for Recommender Systems, IJCAI 2017.<br>
-    </td>
-  </tr>
-  
   <tr>
     <td scope="row">APR</td>
     <td>He et al., Adversarial Personalized Ranking for Recommendation, SIGIR 2018.
      </td>
   </tr>
-  
   </table>
 </div>
 </br>
@@ -211,7 +195,7 @@
   <tr>
     <th class="text-center">Users</th>
     <th class="text-center">Tracks</th>
-    <th class="text-center">Artists</th>    
+    <th class="text-center">Artists</th>    
     <th class="text-center">Albums</th>
    <th class="text-center">Record</th>
     <th class="text-center">Tag</th>
@@ -265,14 +249,25 @@
    </tr>  
     <tr>
     <td><a href="https://pan.baidu.com/s/1J83KK1DVZnrHwqEwkmByxA" target="_blank"><b>30 Music</b></a> <a href="http://recsys.deib.polimi.it/?page_id=54">[source]</a>[4]</td>
-    <td>45167</td>
-    <td>5023108</td>
-    <td>595049</td>
-   <td>217337</td>
+    <td>45,167</td>
+    <td>5,023,108</td>
+    <td>595,049</td>
+   <td>217,337</td>
     <td>many</td>
     <td>Yes</td>
     <td>Yes</td>
     <td>N/A</td>
+   </tr> 
+   <tr>
+    <td><a href="https://pan.baidu.com/s/1BaGq1ysNgpMUwpxMs88wag" target="_blank"><b>Ali Music</b></a></td>
+    <td>349,946</td>
+    <td>10,278</td>
+    <td>50</td>
+   <td>N/A</td>
+    <td>5,652,232</td>
+    <td>N/A</td>
+    <td>N/A</td>
+    <td>Yes</td>
    </tr>   
   </table>
 </div>
