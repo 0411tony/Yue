@@ -48,7 +48,6 @@ class RRN(DeepRecommender):
     #     self.negCount = int(options['-neg'])
         
     def buildModel(self):      
-        ######################  构建神经网络非线性映射   ####################################
         print ('the tensorflow...')
         with tf.name_scope("user_embedding"):
             # user id embedding
@@ -64,12 +63,12 @@ class RRN(DeepRecommender):
             vid_layer = tf.layers.dense(vid_onehot, units=128, activation=tf.nn.relu)
             self.vid_layer = tf.reshape(vid_layer, shape=[-1, self.n_step, 128])
        
-        with tf.variable_scope("user3_rnn_cell", reuse=tf.AUTO_REUSE):
+        with tf.variable_scope("user_rnn_cell", reuse=tf.AUTO_REUSE):
             userCell = tf.nn.rnn_cell.GRUCell(num_units=128)
             userInput = tf.transpose(self.vid_layer, [1, 0, 2])
             userOutputs, userStates = tf.nn.dynamic_rnn(userCell, userInput, dtype=tf.float32)
             self.userOutput = userOutputs[-1]
-        with tf.variable_scope("item3_rnn_cell", reuse=tf.AUTO_REUSE):
+        with tf.variable_scope("item_rnn_cell", reuse=tf.AUTO_REUSE):
             itemCell = tf.nn.rnn_cell.GRUCell(num_units=128)
             itemInput = tf.transpose(self.uid_layer, [1, 0, 2])
             itemOutputs, itemStates = tf.nn.dynamic_rnn(itemCell, itemInput, dtype=tf.float32)
@@ -105,8 +104,6 @@ class RRN(DeepRecommender):
                 self.U[u] = ue          
             for ve,v in zip(V_embedding,item_idx):
                 self.V[v] = ve
-            # self.normalized_V = np.sqrt(np.sum(self.V * self.V, axis=1))
-            # self.normalized_U = np.sqrt(np.sum(self.U * self.U, axis=1))
             self.ranking_performance()
         print("Optimization Finished!")  
 
