@@ -16,32 +16,35 @@ class CDAE(IterativeRecommender):
     def readConfiguration(self):
         super(CDAE, self).readConfiguration()
         eps = config.LineConfig(self.config['CDAE'])
-        self.corruption = float(eps['-co'])
+        self.corruption_level = float(eps['-co'])
         self.n_hidden = int(eps['-nh'])
         self.batch_size = int(eps['-batch_size'])
 
     def initModel(self):
         super(CDAE, self).initModel()
-        n_input = self.data.getSize(self.recType)
+        
         self.n_hidden = 128
-        n_output = self.data.getSize(self.recType)
+        self.num_items = self.data.getSize(self.recType)
+        self.num_users = self.data.getSize('user')
+
         self.negative_sp = 5
-        self.X = tf.placeholder("float", [None, n_input])
-        self.sample = tf.placeholder("bool", [None, n_input])
-        self.zeros = np.zeros((self.batch_size, n_input))
-        self.V = tf.Variable(tf.random_normal([self.data.getSize('user'), self.n_hidden]))
-        self.v_idx = tf.placeholder(tf.int32, [None], name="v_idx")
-        self.V_embed = tf.nn.embedding_lookup(self.V, self.v_idx)
-        self.n = n_input
+        initializer = tf.contrib.layers.xavier_initializer()
+        self.X = tf.placeholder(tf.float32, [None, self.num_items])
+        self.mask_corruption = tf.placeholder(tf.float32, [None, self.num_items])
+        self.sample = tf.placeholder(tf.float32, [None, self.num_items])
+
+        self.U = tf.Variable(initializer([self.num_users, self.n_hidden]))
+        self.u_idx =  tf.placeholder(tf.int32, [None], name="u_idx")
+        self.U_embed = tf.nn.embedding_lookup(self.U, self.u_idx)
 
         self.weights = {
-            'encoder': tf.Variable(tf.random_normal([n_input, self.n_hidden])),
-            'decoder': tf.Variable(tf.random_normal([self.n_hidden, n_output])),
+            'encoder': tf.Variable(tf.random_normal([self.num_items, self.n_hidden])),
+            'decoder': tf.Variable(tf.random_normal([self.n_hidden, self.num_items])),
         }
 
         self.biases = {
             'encoder': tf.Variable(tf.random_normal([self.n_hidden])),
-            'decoder': tf.Variable(tf.random_normal([n_output])),
+            'decoder': tf.Variable(tf.random_normal([self.num_items])),
         }
 
         self.userListen = defaultdict(dict)
@@ -54,87 +57,77 @@ class CDAE(IterativeRecommender):
                 self.userListen[uid][tid] += 1
 
     def encoder(self,x,v):
-        layer = tf.nn.sigmoid(tf.add(tf.add(tf.matmul(x, self.weights['encoder']), self.biases['encoder']),v))
+        layer = tf.nn.sigmoid(tf.matmul(x, self.weights['encoder'])+self.biases['encoder']+v)
         return layer
 
     def decoder(self,x):
-        layer = tf.nn.sigmoid(tf.add(tf.matmul(x, self.weights['decoder']),self.biases['decoder']))
+        layer = tf.nn.sigmoid(tf.matmul(x, self.weights['decoder'])+self.biases['decoder'])
         return layer
 
     def row(self, u):
         k = self.userListen[u].keys()
         v = self.userListen[u].values()
-        vec = np.zeros(self.getSize(self.recType))
+        vec = np.zeros(self.num_items)
         for pair in zip(k,v):
             iid = pair[0]
             vec[iid] = pair[1]
         return vec
 
     def next_batch(self):
-        X = np.zeros((self.batch_size, self.data.getSize(self.recType)))
+        X = np.zeros((self.batch_size, self.num_items))
         uids = []
-        evaluated = np.zeros((self.batch_size, self.data.getSize(self.recType)))>0
-        userList = self.data.name2id['user'].keys()
-        itemList = self.data.name2id['track'].keys()
+        sample = np.zeros((self.batch_size, self.num_items))
+        userList = list(self.data.name2id['user'].keys())
+        itemList = list(self.data.name2id['track'].keys())
         for n in range(self.batch_size):
-            sample = []
             user = choice(userList)
             uid = self.data.name2id['user'][user]
             uids.append(uid)
             vec = self.row(uid)
-            #corrupt
             ratedItems = self.userListen[uid].keys()
             values = self.userListen[uid].values()
             for iid in ratedItems:
-                if random()>self.corruption:
-                    vec[iid]=0
-                evaluated[n][iid]=True
+                sample[n][iid]=1
             for i in range(self.negative_sp*len(ratedItems)):
                 ng = choice(itemList)
                 while ng in self.data.userRecord[user]:
                     ng = choice(itemList)
-                ng = self.data.name2id['track'][ng]
-                evaluated[n][ng]=True
+                ng_id = self.data.name2id['track'][ng]
+                sample[n][ng_id]=1
             X[n]=vec
-        return X, uids, evaluated
+        return X, uids, sample
 
     def buildModel(self):
-
-        self.encoder_op = self.encoder(self.X, self.V_embed)
+        self.corruption_input = tf.multiply(self.X, self.mask_corruption)
+        self.encoder_op = self.encoder(self.corruption_input, self.U_embed)
         self.decoder_op = self.decoder(self.encoder_op)
 
-        y_pred = tf.where(self.sample, self.decoder_op, self.zeros)
-        y_true = tf.where(self.sample, self.X, self.zeros)
+        self.y_pred = tf.multiply(self.sample, self.decoder_op)
+        y_true = tf.multiply(self.sample, self.corruption_input)
+        self.y_pred = tf.maximum(1e-6, self.y_pred)
         
-        self.loss = tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred,labels=y_true)
+        self.loss = -tf.multiply(y_true,tf.log(self.y_pred))-tf.multiply((1-y_true),tf.log(1-self.y_pred))
+        self.reg_loss = self.regU*(tf.nn.l2_loss(self.weights['encoder'])+tf.nn.l2_loss(self.weights['decoder'])+
+                                   tf.nn.l2_loss(self.biases['encoder'])+tf.nn.l2_loss(self.biases['decoder']))
+
+        self.reg_loss = self.reg_loss + self.regU*tf.nn.l2_loss(self.U_embed)
+        self.loss = self.loss + self.reg_loss
         self.loss = tf.reduce_mean(self.loss)
-        reg_lambda = tf.constant(self.regU, dtype=tf.float32)
-
-        self.reg_loss = tf.add(tf.add(tf.multiply(reg_lambda, tf.nn.l2_loss(self.weights['encoder'])),
-                               tf.multiply(reg_lambda, tf.nn.l2_loss(self.weights['decoder']))),
-                               tf.add(tf.multiply(reg_lambda, tf.nn.l2_loss(self.biases['encoder'])),
-                               tf.multiply(reg_lambda, tf.nn.l2_loss(self.biases['decoder']))))
-
-        self.reg_loss = tf.add(self.reg_loss,tf.multiply(reg_lambda,tf.nn.l2_loss(self.V_embed)))
-        self.loss = tf.add(self.loss,self.reg_loss)
 
         optimizer = tf.train.AdamOptimizer(self.lRate).minimize(self.loss)
 
         self.sess = tf.Session()
         init = tf.global_variables_initializer()
         self.sess.run(init)
-
-        total_batch = int(len(self.data.userRecord) / self.batch_size)
-
+        
         for epoch in range(self.maxIter):
-            for i in range(total_batch):
-                mask = np.random.binomial(1, self.corruption, (self.batch_size, self.n))
-                batch_xs,users,sample = self.next_batch()
+            mask = np.random.binomial(1, self.corruption_level, (self.batch_size, self.num_items))
+            batch_xs,users,sample = self.next_batch()
 
-                _, loss = self.sess.run([optimizer, self.loss], feed_dict={self.X: batch_xs,self.mask_corruption:mask,self.v_idx:users,self.sample:sample})
+            _, loss,y = self.sess.run([optimizer, self.loss, self.y_pred], feed_dict={self.X: batch_xs,self.mask_corruption:mask,self.u_idx:users,self.sample:sample})
 
-                print (self.foldInfo,"Epoch:", '%04d' % (epoch + 1),"Batch:", '%03d' %(i+1),"loss=", "{:.9f}".format(loss))
-            self.ranking_performance()
+            print (self.foldInfo,"Epoch:", '%04d' % (epoch + 1),"loss=", "{:.9f}".format(loss))
+        # self.ranking_performance()
         print("Optimization Finished!")
 
 
@@ -146,4 +139,3 @@ class CDAE(IterativeRecommender):
             return self.sess.run(self.decoder_op, feed_dict={self.X:vec,self.v_idx:uid})[0]
         else:
             return [self.data.globalMean] * len(self.data.TrackRecord)
-
