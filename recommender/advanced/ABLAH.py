@@ -372,7 +372,12 @@ class ABLAH(IterativeRecommender):
                     outputs_val = sess.run([self.trainOp, summaryOp, self.global_step, self.loss, self.predictions],
                                            feed_dict)
                     _, summary, step, loss, predictions = outputs_val
+                    self.P = sess.run(self.U)
+                    self.Q = sess.run(self.V)
                     if step % 200 == 0:
                         tf.logging.info("Step: %5d, loss: %3.3f" % (step, loss))
-            
-        
+
+    def predict(self, u):
+        'invoked to rank all the items for the user'
+        uid = self.data.getId(u,'user')
+        return self.Q.dot(self.P[u])
